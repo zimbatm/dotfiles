@@ -10,6 +10,7 @@
     brave
     discord
     element-desktop
+    joplin-desktop
     signal-desktop
     slack
     tdesktop # telegram desktop

@@ -46,15 +46,6 @@
   # Set your time zone.
   time.timeZone = "Europe/Zurich";
 
-  # Configure keymap in X11
-  services.xserver = {
-    xkb.layout = lib.mkForce "ch";
-    xkb.variant = "fr_nodeadkeys";
-  };
-
-  # Configure console keymap
-  console.keyMap = lib.mkForce "sg";
-
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
