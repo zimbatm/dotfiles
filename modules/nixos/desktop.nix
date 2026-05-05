@@ -9,6 +9,7 @@
 
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs; [
+    libsecret # secret-tool for unlocking gnome-keyring from CLI
     ntfs3g
     pciutils
   ];
