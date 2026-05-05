@@ -33,6 +33,17 @@ in
     ./sem-grep.nix
   ];
 
+  # Secret Service for libsecret-backed apps (Signal, browsers, etc.).
+  # ssh component intentionally omitted: gcr-ssh-agent already owns
+  # $SSH_AUTH_SOCK at /run/user/$UID/gcr/ssh.
+  services.gnome-keyring = {
+    enable = true;
+    components = [
+      "pkcs11"
+      "secrets"
+    ];
+  };
+
   programs.firefox.enable = true;
   # pin legacy path; XDG migration would need manual ~/.mozilla move on nv1
   programs.firefox.configPath = ".mozilla/firefox";
