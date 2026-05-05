@@ -269,9 +269,18 @@ in
     pinentry.package = pkgs.pinentry-gnome3;
   };
 
-  programs.htop.enable = true;
+  # Secret Service for libsecret-backed apps (Signal, browsers, etc.).
+  # ssh component intentionally omitted: gcr-ssh-agent already owns
+  # $SSH_AUTH_SOCK at /run/user/$UID/gcr/ssh.
+  services.gnome-keyring = {
+    enable = true;
+    components = [
+      "pkcs11"
+      "secrets"
+    ];
+  };
 
-  programs.keychain.enable = true;
+  programs.htop.enable = true;
 
   programs.rofi.enable = true;
 
