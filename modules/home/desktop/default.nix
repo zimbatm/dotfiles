@@ -23,6 +23,20 @@ let
     pkgs.crush.overrideAttrs (_: {
       inherit goModules;
     });
+
+  # Electron's safeStorage backend autodetect keys off XDG_CURRENT_DESKTOP,
+  # which is "niri" on this host — not in Electron's known-DE list, so it
+  # falls back to basic_text and Signal aborts on backend mismatch. Force
+  # gnome-libsecret; gnome-keyring-daemon owns org.freedesktop.secrets here.
+  signal-desktop = pkgs.symlinkJoin {
+    name = "signal-desktop-libsecret";
+    paths = [ pkgs.signal-desktop ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/signal-desktop \
+        --add-flags "--password-store=gnome-libsecret"
+    '';
+  };
 in
 {
   imports = [
