@@ -32,8 +32,13 @@ pkgs.writeShellApplication {
     #                                           CLI/COMPLETION upstream); callers must
     #                                           strip. See bench.sh for the 4-case
     #                                           grammar×lookup tok/s matrix.
-    #   ask-local --serve                     → llama-server on 127.0.0.1:8088 (OpenAI-compat),
-    #                                           with n-gram lookup decoding always on.
+    #   ask-local --serve [--model M] [--port N]
+    #                                         → llama-server on 127.0.0.1:N (default 8088,
+    #                                           OpenAI-compat) with n-gram lookup decoding
+    #                                           always on. --model overrides $ASK_LOCAL_MODEL;
+    #                                           bare names resolve under $XDG_DATA_HOME/llama.
+    #                                           llm-router uses these to spawn one backend per
+    #                                           resident model and reap idle ones.
     #   ask-local --agent "<goal>"            → bounded ReAct loop: GBNF-forced JSON tool
     #                                           calls over packages/ CLIs (tools.json),
     #                                           ≤4 turns. See bench-agent.jsonl.
@@ -64,8 +69,25 @@ pkgs.writeShellApplication {
     esac
 
     if [[ "''${1:-}" == "--serve" ]]; then
+      shift
+      PORT="''${ASK_LOCAL_PORT:-8088}"
+      while true; do
+        case "''${1:-}" in
+          --model)
+            [[ $# -ge 2 ]] || { echo "ask-local: --model needs a name or path" >&2; exit 2; }
+            MODEL="$2"
+            [[ "$MODEL" == */* ]] || MODEL="''${XDG_DATA_HOME:-$HOME/.local/share}/llama/$MODEL"
+            [[ "$MODEL" == *.gguf ]] || MODEL="$MODEL.gguf"
+            shift 2 ;;
+          --port)
+            [[ $# -ge 2 ]] || { echo "ask-local: --port needs a number" >&2; exit 2; }
+            PORT="$2"; shift 2 ;;
+          *) break ;;
+        esac
+      done
+      [[ -f "$MODEL" ]] || { echo "ask-local: no such model: $MODEL" >&2; exit 1; }
       # Server exposes prompt-lookup cleanly (no echo issue); enable unconditionally.
-      exec llama-server -m "$MODEL" -ngl 99 --host 127.0.0.1 --port 8088 \
+      exec llama-server -m "$MODEL" -ngl 99 --host 127.0.0.1 --port "$PORT" \
         -lcd "$CACHE/lookup.ngram" --spec-type ngram-cache --draft-max 16
     fi
 
