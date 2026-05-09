@@ -75,6 +75,34 @@ in
   # Reachability half of identity.peers.kin-infra (kin@a8d56b76, maille@eaefaae).
   # hcloud-01 is kin-infra's ingress host; port 7850 is the kin default.
   services.mesh.peerFleets.kin-infra.seeds = [ "5.75.246.255:7850" ];
+
+  # ADR-0009 remote-tier builder — push-bridge proof to kin-infra hcloud-07
+  # (ccx33, 8 vCPU/32G) over the maille mesh ULA. Reachability is
+  # services.mesh.peerFleets.kin-infra above; the route exists, dispatch
+  # over it didn't until this block. Cross-fleet authz is a MANUAL key drop
+  # on hcloud-07 for now (nv1's ssh-host.pub → nix-remote authorizedKeys);
+  # declarative path is ../kin/backlog/feat-builders-peer-fleet-keys.md.
+  # sshKey is nv1's per-machine /run/kin secret path — only nv1 dispatches;
+  # web2/relay1 also get this nix.buildMachines entry but never reach for it.
+  builders.hcloud-07 = {
+    host = "fdc5:e1a6:b03f::ad72:8e88:ac84:0e54";
+    systems = [
+      {
+        system = "x86_64-linux";
+        features = [
+          "benchmark"
+          "big-parallel"
+          "ca-derivations"
+          "kvm"
+          "nixos-test"
+        ];
+        speedFactor = 2;
+      }
+    ];
+    maxJobs = 8;
+    sshKey = "/run/kin/identity/machine/nv1/ssh-host";
+  };
+
   services.attest.on = [ "web2" ];
   services.attest.keyName = "attest.ztm-1";
 
