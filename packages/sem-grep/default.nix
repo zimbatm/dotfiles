@@ -27,20 +27,25 @@ pkgs.writeShellApplication {
     pkgs.systemd # journalctl for `index-log`
   ];
   text = ''
-    # Semantic grep over the assise repos via a tiny embedding model resident
-    # on the Meteor Lake NPU. Index: git-tracked text in ~/src/{home,kin,iets,
-    # maille,meta} → chunked → sqlite+blob at $XDG_STATE_HOME/sem-grep. Query:
-    # brute-force cosine over the blobs (no faiss; corpus is ~2k files). Reuses
-    # transcribe-npu's OpenVINO closure so the Arc iGPU stays free for ask-local.
+    # Semantic grep over the assise repos. Index: git-tracked text in
+    # ~/src/{home,kin,iets,maille,meta} → chunked → sqlite+blob (dense) +
+    # contentless FTS5 (lexical) at $XDG_STATE_HOME/sem-grep. Query: by default
+    # both legs are run and RRF-fused — dense (bge-small cosine on the Meteor
+    # Lake NPU) catches paraphrase, lexical (BM25, pure sqlite) catches exact
+    # identifiers like `kin.nix`. Reuses transcribe-npu's OpenVINO closure so
+    # the Arc iGPU stays free for ask-local.
     #
-    #   sem-grep "<query>"       → ranked file:line hits (top 10)
-    #   sem-grep -n 20 "<query>" → top N
-    #   sem-grep -r "<query>"    → rerank cosine top-30 with bge-reranker-base
-    #   sem-grep sig "<query>"   → ranked file:line  signature (treesitter defs)
-    #   sem-grep index           → (re)build; incremental on git blob-sha
-    #   sem-grep hist "<query>"  → ranked shell-history commands (hist-sem alias)
-    #   sem-grep log "<query>"   → ranked journald lines (last 7d, hour-deduped)
-    #   sem-grep index-log       → (re)build the journald index (nightly timer)
+    #   sem-grep "<query>"            → ranked file:line hits (top 10, hybrid)
+    #   sem-grep -n 20 "<query>"      → top N
+    #   sem-grep --mode dense   "..." → cosine only (original path)
+    #   sem-grep --mode lexical "..." → BM25 only (no NPU, exact identifiers)
+    #   sem-grep --mode hybrid  "..." → RRF-fused (default)
+    #   sem-grep -r "<query>"         → rerank candidate pool with bge-reranker
+    #   sem-grep sig "<query>"        → ranked file:line  signature (treesitter)
+    #   sem-grep index                → (re)build; incremental on git blob-sha
+    #   sem-grep hist "<query>"       → ranked shell-history (hist-sem alias)
+    #   sem-grep log "<query>"        → ranked journald lines (7d, hour-deduped)
+    #   sem-grep index-log            → (re)build the journald index (nightly)
     #
     # Model: bge-small-en-v1.5 OpenVINO IR (~130 MB, 384-dim) under XDG_DATA_HOME.
     # Rerank model (opt-in, -r): bge-reranker-base OpenVINO IR (~280 MB fp16).
