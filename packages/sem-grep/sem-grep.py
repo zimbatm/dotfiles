@@ -1,16 +1,21 @@
-"""sem-grep: NPU-resident embedding index over the assise repos.
+"""sem-grep: hybrid (dense + lexical) retrieval over the assise repos.
 
-bge-small-en-v1.5 (384-dim) on OpenVINO; sqlite+blob store under
-$XDG_STATE_HOME/sem-grep; brute-force cosine (corpus ~2k files, no
-faiss). Wrapper at packages/sem-grep/default.nix sets env + model path.
-NPU co-residency with wake-listen's Silero and embed-vs-ripgrep recall
-are post-deploy falsification targets — see backlog/adopt-sem-grep.md.
+Dense: bge-small-en-v1.5 (384-dim) on OpenVINO/NPU; sqlite+blob store
+under $XDG_STATE_HOME/sem-grep; brute-force cosine (corpus ~2k files, no
+faiss). Lexical: contentless FTS5/BM25 over the same chunk grid (sqlite,
+no NPU). Default `--mode hybrid` fuses both rankings with reciprocal-rank
+fusion — dense alone misses exact identifiers (`kin.nix` ≈ `kin nicks`
+on a small model), lexical alone misses paraphrase. Wrapper at
+packages/sem-grep/default.nix sets env + model path. NPU co-residency
+and dense/lexical/hybrid recall are post-deploy falsification targets —
+see backlog/adopt-sem-grep.md and adopt-sem-grep-hybrid-retrieval.md.
 """
 import argparse
 import ctypes
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import subprocess
 import sys
@@ -32,6 +37,8 @@ CHUNK_LINES, STRIDE = 24, 12
 MAX_LEN = 256  # tokens; bge cap is 512 but shorter = faster, fits more on NPU
 RERANK_MAX_LEN = 512  # cross-encoder sees query+passage; needs the headroom
 RERANK_POOL = 30  # cosine candidates fed to the cross-encoder
+RRF_K = 60        # Cormack/Clarke/Büttcher 2009 — RRF smoothing constant
+RRF_POOL = 60     # candidates pulled from each ranker before fusion
 BATCH = 8
 SKIP_EXT = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".age", ".bin", ".svg",
             ".lock", ".gz", ".zst", ".woff", ".woff2", ".ttf", ".ico"}
@@ -109,7 +116,67 @@ def db():
       CREATE INDEX IF NOT EXISTS refs_sym ON refs(symbol);
       CREATE INDEX IF NOT EXISTS refs_rp ON refs(repo, path);
     """)
+    try:
+        # Lexical leg of hybrid retrieval. Contentless — chunk text already lives
+        # on disk (chunk_text()), so we only store the inverted index, not the
+        # text. contentless_delete=1 (sqlite ≥3.43) keeps incremental DELETE
+        # working without a content table. tokenchars keeps `kin.nix` one token.
+        con.execute("""CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
+          text, content='', contentless_delete=1,
+          tokenize="unicode61 remove_diacritics 2 tokenchars '._-'")""")
+    except sqlite3.OperationalError:
+        pass  # no FTS5 / pre-3.43 sqlite — hybrid degrades to dense
     return con
+
+
+def _has_fts(con):
+    return bool(con.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='chunks_fts'"
+    ).fetchone())
+
+
+# Mirror unicode61's token chars (+ the configured `tokenchars '._-'`) so query
+# tokenisation matches index tokenisation.
+_FTS_TOKEN = re.compile(r"[\w.\-]+")
+
+
+def _fts_query(text):
+    """Tokenise the query the same way unicode61+tokenchars would, quote each
+    token as a phrase, OR-join. Quoting neutralises FTS5 operators (NEAR, *,
+    column filters) that would otherwise blow up on natural-language input."""
+    return " OR ".join(f'"{t}"' for t in _FTS_TOKEN.findall(text))
+
+
+def _rrf(*rankings):
+    """Reciprocal-rank fusion: score(d) = Σ_i 1/(k + rank_i(d)). Rank-only —
+    no learned weights, no score normalisation; robust to the BM25/cosine scale
+    mismatch. Returns [(doc, score), …] best-first."""
+    score: dict[int, float] = {}
+    for ranking in rankings:
+        for rank, doc in enumerate(ranking, 1):
+            score[doc] = score.get(doc, 0.0) + 1.0 / (RRF_K + rank)
+    return sorted(score.items(), key=lambda kv: -kv[1])
+
+
+def _fts_backfill(con):
+    """One-time: chunks has rows but chunks_fts is empty (upgrade from a
+    dense-only index.db). Rebuild FTS from on-disk text — no re-embed, no NPU."""
+    if not con.execute("SELECT 1 FROM chunks LIMIT 1").fetchone():
+        return
+    if con.execute("SELECT rowid FROM chunks_fts LIMIT 1").fetchone():
+        return
+    n = 0
+    for rowid, repo, path, line in con.execute(
+            "SELECT id, repo, path, line FROM chunks"):
+        txt = chunk_text(repo, path, line)
+        if txt:
+            con.execute("INSERT INTO chunks_fts(rowid,text) VALUES(?,?)",
+                        (rowid, txt))
+            n += 1
+    con.commit()
+    if n:
+        print(f"sem-grep: backfilled chunks_fts ({n} chunks from disk)",
+              file=sys.stderr)
 
 
 def git_tracked(repo):
@@ -262,8 +329,21 @@ def chunks_of(repo, path):
 
 def cmd_index(_args):
     con = db()
+    has_fts = _has_fts(con)
+    if has_fts:
+        _fts_backfill(con)
     embed = load_embedder()
+    cur = con.cursor()
     n_new = n_skip = 0
+
+    def drop_chunks(repo, path):
+        # FTS rows must go first — we need the rowids that are about to vanish.
+        if has_fts:
+            con.execute("DELETE FROM chunks_fts WHERE rowid IN "
+                        "(SELECT id FROM chunks WHERE repo=? AND path=?)",
+                        (repo, path))
+        con.execute("DELETE FROM chunks WHERE repo=? AND path=?", (repo, path))
+
     for repo in REPOS:
         prev = dict(con.execute(
             "SELECT path, sha FROM files WHERE repo=?", (repo,)))
@@ -273,8 +353,7 @@ def cmd_index(_args):
             if prev.get(path) == sha:
                 n_skip += 1
                 continue
-            con.execute("DELETE FROM chunks WHERE repo=? AND path=?",
-                        (repo, path))
+            drop_chunks(repo, path)
             con.execute("DELETE FROM sigs WHERE repo=? AND path=?",
                         (repo, path))
             con.execute("DELETE FROM refs WHERE repo=? AND path=?",
@@ -283,10 +362,15 @@ def cmd_index(_args):
             for j in range(0, len(batch), BATCH):
                 part = batch[j:j + BATCH]
                 vecs = embed([t for _, t in part])
-                con.executemany(
-                    "INSERT INTO chunks(repo,path,line,vec) VALUES(?,?,?,?)",
-                    [(repo, path, ln, vecs[k].tobytes())
-                     for k, (ln, _) in enumerate(part)])
+                # row-at-a-time so lastrowid links chunks↔chunks_fts
+                for k, (ln, txt) in enumerate(part):
+                    cur.execute(
+                        "INSERT INTO chunks(repo,path,line,vec) VALUES(?,?,?,?)",
+                        (repo, path, ln, vecs[k].tobytes()))
+                    if has_fts:
+                        cur.execute(
+                            "INSERT INTO chunks_fts(rowid,text) VALUES(?,?)",
+                            (cur.lastrowid, txt))
             sigs = list(sigs_of(repo, path))
             for j in range(0, len(sigs), BATCH):
                 part = sigs[j:j + BATCH]
@@ -302,8 +386,7 @@ def cmd_index(_args):
                         (repo, path, sha))
             n_new += 1
         for path in set(prev) - live:
-            con.execute("DELETE FROM chunks WHERE repo=? AND path=?",
-                        (repo, path))
+            drop_chunks(repo, path)
             con.execute("DELETE FROM sigs WHERE repo=? AND path=?",
                         (repo, path))
             con.execute("DELETE FROM refs WHERE repo=? AND path=?",
@@ -576,43 +659,76 @@ def cmd_refs(args):
 
 
 def cmd_query(args):
+    """Hybrid retrieval over the chunks index. --mode picks the leg(s):
+      dense   — brute-force cosine over the bge-small embeddings (original path)
+      lexical — FTS5 BM25 over chunks_fts (exact identifiers, no NPU)
+      hybrid  — both, fused with reciprocal-rank fusion (default)
+    Falsification: hit@3 across modes on a fixed identifier-heavy query set —
+    see backlog/adopt-sem-grep-hybrid-retrieval.md."""
     con = db()
-    rows = con.execute("SELECT repo, path, line, vec FROM chunks").fetchall()
+    rows = con.execute("SELECT id, repo, path, line, vec FROM chunks").fetchall()
     if not rows:
         print("sem-grep: index empty — run `sem-grep index` first",
               file=sys.stderr)
         sys.exit(1)
-    embed = load_embedder()
-    # bge s2p retrieval prefix on the query side only
-    q = embed(["Represent this sentence for searching relevant passages: "
-               + args.text])[0]
-    mat = np.frombuffer(b"".join(r[3] for r in rows),
-                        dtype=np.float32).reshape(-1, DIM)
-    scores = mat @ q
+    mode = args.mode
+    if mode != "dense" and not _has_fts(con):
+        print("sem-grep: chunks_fts missing (run `sem-grep index` to build the "
+              "lexical leg) — falling back to --mode dense", file=sys.stderr)
+        mode = "dense"
+    by_id = {r[0]: i for i, r in enumerate(rows)}  # rowid → row index
+    pool_n = max(RRF_POOL, args.n, RERANK_POOL if args.rerank else 0)
+
+    dense_rank, lex_rank, cos, bm25 = [], [], None, {}
+    if mode in ("dense", "hybrid"):
+        embed = load_embedder()
+        # bge s2p retrieval prefix on the query side only
+        q = embed(["Represent this sentence for searching relevant passages: "
+                   + args.text])[0]
+        mat = np.frombuffer(b"".join(r[4] for r in rows),
+                            dtype=np.float32).reshape(-1, DIM)
+        cos = mat @ q
+        dense_rank = np.argsort(-cos)[:pool_n].tolist()
+    if mode in ("lexical", "hybrid"):
+        match = _fts_query(args.text)
+        if match:
+            for rowid, b in con.execute(
+                    "SELECT rowid, bm25(chunks_fts) FROM chunks_fts "
+                    "WHERE chunks_fts MATCH ? ORDER BY bm25(chunks_fts) LIMIT ?",
+                    (match, pool_n)):
+                if rowid in by_id:
+                    i = by_id[rowid]
+                    lex_rank.append(i)
+                    bm25[i] = -b  # bm25() is more-negative = more relevant
+
+    if mode == "dense":
+        ranked = [(i, float(cos[i])) for i in dense_rank]
+    elif mode == "lexical":
+        ranked = [(i, bm25[i]) for i in lex_rank]
+    else:
+        ranked = _rrf(dense_rank, lex_rank)
+
     home = os.path.expanduser("~") + "/"
     if args.rerank:
-        # stage-2: cosine top-K → cross-encoder rerank → top-N
-        pool = np.argsort(-scores)[: max(RERANK_POOL, args.n)]
-        passages = [chunk_text(rows[i][0], rows[i][1], rows[i][2]) for i in pool]
+        # stage-2: candidate pool → cross-encoder rerank → top-N
+        pool = [i for i, _ in ranked[: max(RERANK_POOL, args.n)]]
+        passages = [chunk_text(rows[i][1], rows[i][2], rows[i][3]) for i in pool]
         rscore = load_reranker()(args.text, passages)
         order = np.argsort(-rscore)[: args.n]
-        top = [pool[k] for k in order]
-        for k, i in zip(order, top):
-            repo, path, line, _ = rows[i]
-            loc = os.path.join(repo, path).replace(home, "~/", 1)
-            print(f"{rscore[k]:+.3f}  {loc}:{line}")
+        out = [(pool[k], float(rscore[k])) for k in order]
     else:
-        top = np.argsort(-scores)[: args.n]
-        for i in top:
-            repo, path, line, _ = rows[i]
-            loc = os.path.join(repo, path).replace(home, "~/", 1)
-            print(f"{scores[i]:.3f}  {loc}:{line}")
-    # falsification log → feeds the embed-vs-ripgrep / rerank-vs-cosine evals
+        out = ranked[: args.n]
+    for i, s in out:
+        _, repo, path, line, _ = rows[i]
+        loc = os.path.join(repo, path).replace(home, "~/", 1)
+        print(f"{s:+.4f}  {loc}:{line}")
+    # falsification log → feeds the dense/lexical/hybrid + rerank A/B evals
     try:
         with open(os.path.join(STATE, "evals.jsonl"), "a") as f:
             f.write(json.dumps({
-                "ts": time.time(), "q": args.text, "rerank": args.rerank,
-                "top": [f"{rows[i][1]}:{rows[i][2]}" for i in top[:5]],
+                "ts": time.time(), "q": args.text, "mode": mode,
+                "rerank": args.rerank,
+                "top": [f"{rows[i][2]}:{rows[i][3]}" for i, _ in out[:5]],
             }) + "\n")
     except OSError:
         pass
@@ -625,7 +741,11 @@ def main():
     qp = sub.add_parser("query")
     qp.add_argument("-n", type=int, default=10)
     qp.add_argument("-r", "--rerank", action="store_true",
-                    help="rerank cosine top-30 with bge-reranker-base on NPU")
+                    help="rerank candidate pool with bge-reranker-base on NPU")
+    qp.add_argument("--mode", choices=("dense", "lexical", "hybrid"),
+                    default="hybrid",
+                    help="retrieval mode: dense cosine, lexical BM25, or "
+                         "RRF-fused hybrid (default)")
     qp.add_argument("text")
     qp.set_defaults(fn=cmd_query)
     sp = sub.add_parser("sig")
