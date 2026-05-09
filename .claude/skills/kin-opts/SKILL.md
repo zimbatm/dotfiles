@@ -13,7 +13,7 @@ kin-opts <host> <option.path>     # leaf → {value,type,description,declared,de
 kin-opts <host> --search <regex>  # full-tree path grep (kin/maille/local included)
 kin-opts <host> --pkgs            # flat name list of environment.systemPackages
 kin-opts --diff <h1> <h2> <path>  # unified diff of config.<path> between two hosts
-kin-opts --hosts                  # nv1 web2 relay1
+kin-opts --hosts                  # nv1 web2
 ```
 
 `defined` shows which file in *this* repo (or kin/srvos) actually set the

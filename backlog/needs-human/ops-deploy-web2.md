@@ -425,3 +425,10 @@ landed). Externals all <7d (nixpkgs 4.7d, hm 1.3d, srvos 2.7d, nixos-hw
 2.5d, nix-index-db 1.3d, nixvim 4.2d) — no new bump-* filed. Reconcile
 unchanged: `kin deploy web2`, then recover relay1
 (`ops-relay1-recover.md`).
+
+## append @ relay1 retired (2026-05-09)
+
+relay1 decommissioned (Jonas; iroh underused) — removed from `kin.nix`,
+`machines/`, `gen/`, `keys/`. The "recover relay1" half of the
+reconcile is moot; `ops-relay1-recover.md` deleted. Reconcile is now
+just `kin deploy web2`. relay1 history above retained for the record.

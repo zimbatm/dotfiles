@@ -273,3 +273,12 @@ emits the sem-grep-mined hint list; (2) `sem-grep "test query"` shows
 the BM25 leg in `--explain` output (FTS5 table populated). Layered on
 top of the system-features and builders.hcloud-07 checks above.
 **Reachability still blocked on relay1 recovery.**
+
+## append @ relay1 retired (2026-05-09)
+
+relay1 decommissioned (Jonas; iroh underused). The `proxyJump = "relay1"`
+leg is removed from `kin.nix` — nv1's mesh ULA is no longer reachable
+from the homespace at all. **Deploy is local-only**: `kin deploy nv1`
+from nv1 itself, or Jonas at the desk per `feedback_deploy_scope`. The
+"recover relay1 first" precondition is moot. The kin-infra peer-fleet
+mesh path (hcloud-07 builder ULA) is independent of relay1 and remains.

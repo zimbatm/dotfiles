@@ -1,5 +1,5 @@
 # kin-generated — Include this from ~/.ssh/config
-Host nv1 relay1 web2 fd0c:3964:8cda::6e42:b995:2026:deae 95.216.188.155 89.167.46.118
+Host nv1 web2 fd0c:3964:8cda::6e42:b995:2026:deae 89.167.46.118
   IdentityFile ~/.ssh/kin-bir7vyhu_ed25519
   CertificateFile ~/.ssh/kin-bir7vyhu_ed25519-cert.pub
   ServerAliveInterval 30
@@ -7,11 +7,6 @@ Host nv1 relay1 web2 fd0c:3964:8cda::6e42:b995:2026:deae 95.216.188.155 89.167.4
 
 Host nv1
   HostName fd0c:3964:8cda::6e42:b995:2026:deae
-  User root
-  ProxyJump root@95.216.188.155
-
-Host relay1
-  HostName 95.216.188.155
   User root
 
 Host web2

@@ -35,7 +35,6 @@ in
   machines = {
     nv1 = {
       host = "fd0c:3964:8cda::6e42:b995:2026:deae";
-      proxyJump = "relay1";
       tags = [ "desktop" ];
       profile = "none";
       stateVersion = "23.05";
@@ -43,15 +42,6 @@ in
     web2 = {
       host = "89.167.46.118";
       tags = [ "server" ];
-      profile = "hetzner-cloud";
-      stateVersion = "26.05";
-    };
-    relay1 = {
-      host = "95.216.188.155";
-      tags = [
-        "server"
-        "relay"
-      ];
       profile = "hetzner-cloud";
       stateVersion = "26.05";
     };
@@ -71,7 +61,8 @@ in
     peers.kin-infra.net = "fdc5:e1a6:b03f";
   };
   services.mesh.on = [ "all" ];
-  services.mesh.relay = [ "relay1" ];
+  # No own relay since relay1 was decommissioned (2026-05-09; iroh underused).
+  # Mesh stays on for the kin-infra peer-fleet path → hcloud-07 builder ULA.
   # Reachability half of identity.peers.kin-infra (kin@a8d56b76, maille@eaefaae).
   # hcloud-01 is kin-infra's ingress host; port 7850 is the kin default.
   services.mesh.peerFleets.kin-infra.seeds = [ "5.75.246.255:7850" ];
@@ -83,7 +74,7 @@ in
   # on hcloud-07 for now (nv1's ssh-host.pub → nix-remote authorizedKeys);
   # declarative path is ../kin/backlog/feat-builders-peer-fleet-keys.md.
   # sshKey is nv1's per-machine /run/kin secret path — only nv1 dispatches;
-  # web2/relay1 also get this nix.buildMachines entry but never reach for it.
+  # web2 also gets this nix.buildMachines entry but never reaches for it.
   builders.hcloud-07 = {
     host = "fdc5:e1a6:b03f::ad72:8e88:ac84:0e54";
     systems = [
