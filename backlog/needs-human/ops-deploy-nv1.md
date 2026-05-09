@@ -332,3 +332,36 @@ niri session removed from GDM.
 
 **Reachability blocked on relay1 recovery** — even if nv1 is on the
 mesh, the ProxyJump leg is dead. Fix relay1 first.
+
+### drift @ 9def97e (2026-05-09)
+
+```
+have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
+want: /nix/store/rsb8r0kg…-nixos-system-nv1-26.05.20260505.549bd84   (was qjdsdd97)
+```
+
+Catch-up entry — drift @ {dde1472, 1cb22af, a73c579} appended to
+`ops-deploy-web2.md` only; nv1 want progression
+qjdsdd97 → … → h31nl66w (a73c579) → rsb8r0kg (9def97e). Dry-build
+565/1343/5.0G (was 563/1286/4.9G @ 23975b3). Closure-affecting since
+23975b3, nv1-side beyond the all-host bumps already tabulated in
+`ops-deploy-web2.md` (4b5ca4e nixpkgs, ecdc26f+a1a5da4 internal bumps,
+ffb9aeb kin llm-adapter, bfbaf59 srvos, eceb5e4 nixos-hardware):
+
+| commit | what |
+|---|---|
+| e4db263 | nv1: drop stale VFIO comments (machines/nv1) |
+| a8d3abd | ask-cuda --structured-think (re-checked: not in host closure, NEUTRAL) |
+| 74d901a | llm-router: model-keyed backend lifecycle (spawn/idle-reap/LRU) |
+| a3f8a1c | afk-bench: opportunistic local-inference bench drain on idle nv1 |
+| a1a615b | home-manager c55c498c→fdb2ccba (nv1-only at closure level) |
+| 318976e | nix-index-database b8eb7ace→dd2d0e3f (terminal→desktop→nv1) |
+
+New runtime checks: (1) `afk-bench` user timer present (`systemctl
+--user list-timers | grep afk-bench`); fires on AFK window, drains
+`infer-queue`; (2) `ask-local --serve` accepts `--model`/`--port`
+flags; llm-router spawn/idle-reap/LRU lifecycle observable via
+`/v1/models`. Other runtime checks carried from 23975b3 entry above.
+
+> META: drift append-log now has **6** entries (>3 trigger). Compact
+> e960caf..9def97e into the table on next META round.

@@ -84,3 +84,11 @@ existence check) is now load-bearing before anything else.
 want unchanged: `8gk4aiq0…549bd84` (eval @ a73c579, dry-build
 80/18/145.5M passes). nv1 still not-on-mesh transitively (proxy through
 this dead IP).
+
+### drift @ 9def97e (2026-05-09)
+
+Still **FULLY DOWN** — re-probed: ICMP 2/2 packets lost (100%), TCP/22
+connection-timeout. No change from a73c579. web2 (same Hetzner
+Helsinki, 89.167.46.118) up 31d8h. want unchanged `8gk4aiq0…549bd84`
+(re-evaled @ 9def97e — none of the 6 commits since a73c579 moved
+relay1's closure). Dry-build 80/18/145.5M unchanged.

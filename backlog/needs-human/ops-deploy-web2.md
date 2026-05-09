@@ -271,3 +271,40 @@ dd2d0e3f), home-manager 13.0d (c55c498c, upstream fdb2ccba), nixvim
 13.0d (d404af65, upstream 7986a276) — all upstream MOVED (ls-remote
 verified). srvos 2d nixos-hardware 2d nixpkgs 4d fresh post-r6. Filed
 `bump-nix-index-database.md`, `bump-home-manager.md`, `bump-nixvim.md`.
+
+### drift @ 9def97e (2026-05-09)
+
+**carries 10 holds — want UNCHANGED.** 4 closure-affecting commits
+landed since a73c579 (a1a615b home-manager c55c498c→fdb2ccba, 318976e
+nix-index-database b8eb7ace→dd2d0e3f, a3f8a1c afk-bench, 74d901a
+llm-router) — re-evaled web2 toplevel at 9def97e: still
+`5x19wq235j8dk6cn6gk9d1zgfnpqd2rh…549bd84`, identical to a73c579.
+All 4 commits are nv1-only at the closure level: home-manager + nix-index-database
+upstream moved no module web2 imports (`terminal` → `desktop` → nv1),
+afk-bench/llm-router are `modules/home/desktop` + `packages/`. relay1
+also unchanged (`8gk4aiq0…549bd84`). Only nv1 moved
+(`h31nl66w` → `rsb8r0kg…549bd84`). NEUTRAL for web2: all 6 commits
+since a73c579.
+
+```
+web2:   have c27fxv31… (gen-25, Apr-24)  want 5x19wq23…549bd84   carries 10  degraded   31d8h
+relay1: FULLY DOWN (ICMP+TCP/22 dead)                            want 8gk4aiq0…549bd84
+nv1:    not-on-mesh                                              want rsb8r0kg…549bd84
+```
+
+Failed units on web2 still **2**: `acme-order-renew-gts.zimbatm.com.service`
+last fire Sat May-9 02:26:06 ExecMainStatus=1, next Sun May-10 02:26
+(unchanged from a73c579 entry — same fire);
+`restic-backups-gotosocial.service` last fire Sat May-9 17:00:02
+Result=exit-code (one more hourly cycle since a73c579's 16:00:08 entry,
+ExecStartPre still the failure point), next 18:00. Booted-system still
+`zmk2wdqzx…20260405` ≠ current `c27fxv31…20260418` — no reboot.
+
+Dry-build 3/3: web2 161/43/262.5M (was 164/68/291.9M — some deps
+populated by intervening evals), relay1 80/18/145.5M (unchanged), nv1
+565/1343/5.0G (was 587/1385). All gates pass.
+
+Externals: only nixvim still stale at 13d (`bump-nixvim.md` already
+filed @ a73c579, still actionable). home-manager 1d / nix-index-database
+1d (both consumed @ r8). nixpkgs 4d, srvos 2d, nixos-hardware 2d fresh.
+No new bump-* filed.
