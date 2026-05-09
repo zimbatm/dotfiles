@@ -45,12 +45,26 @@ pkgs.writeShellApplication {
 
     # shellcheck source=/dev/null
     . ${../lib/fetch-model.sh}
+    # shellcheck source=/dev/null
+    . ${../lib/dictation-vocab.sh}
     fetch_model "$MODEL" \
       https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin
 
     REC="$STATE/rec.wav"
     pw-record --rate 16000 --channels 1 "$REC" &
     echo $! > "$STATE/pid"
+
+    # Decoder biasing: feed project jargon as the whisper.cpp initial prompt.
+    # --prompt is a soft n-gram bias (it conditions the decoder, doesn't
+    # constrain it) and over-long prompts steal context from the audio and
+    # *hurt* — cap ~600 chars (~150 BPE tokens, well under whisper's 224-token
+    # prompt half of the 448-token decoder window). Computed here so the cold
+    # cache path overlaps with the user speaking instead of delaying recording
+    # start; warm cache is a stat+head. transcribe-{npu,cpu} pull the same
+    # cached list themselves so the npu/cpu lanes are biased too.
+    VOCAB_PROMPT=$(dictation_vocab 200 | tr '\n' ' ')
+    VOCAB_PROMPT="''${VOCAB_PROMPT:0:600}"
+
     wait || true
     rm -f "$STATE/pid"
 
@@ -68,7 +82,8 @@ pkgs.writeShellApplication {
     case "$backend" in
       npu) TEXT=$(transcribe-npu "$REC" 2>/dev/null) ;;
       cpu) TEXT=$(transcribe-cpu "$REC" 2>/dev/null) ;;
-      arc) TEXT=$(whisper-cli -m "$MODEL" -f "$REC" --no-timestamps --no-prints 2>/dev/null) ;;
+      arc) TEXT=$(whisper-cli -m "$MODEL" -f "$REC" --no-timestamps --no-prints \
+                    --prompt "$VOCAB_PROMPT" 2>/dev/null) ;;
       *)
         # Default: prefer the Meteor Lake NPU when present — frees the Arc iGPU
         # for ask-local. Fall back to whisper-cpp/vulkan if the accel node is
@@ -76,7 +91,8 @@ pkgs.writeShellApplication {
         if [[ -e /dev/accel/accel0 ]] && TEXT=$(transcribe-npu "$REC" 2>/dev/null); then
           :
         else
-          TEXT=$(whisper-cli -m "$MODEL" -f "$REC" --no-timestamps --no-prints 2>/dev/null)
+          TEXT=$(whisper-cli -m "$MODEL" -f "$REC" --no-timestamps --no-prints \
+                   --prompt "$VOCAB_PROMPT" 2>/dev/null)
         fi ;;
     esac
     TEXT=$(printf %s "$TEXT" | tr -d '\n' | sed 's/^ *//;s/ *$//')
