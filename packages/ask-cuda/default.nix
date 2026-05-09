@@ -84,8 +84,12 @@ pkgs.writeShellApplication {
       exec llama-server "''${common[@]}" -np 1 --host 127.0.0.1 --port 8089
     fi
 
-    # -no-cnv = single-shot completion (no chat-loop), -n caps generation,
-    # --no-display-prompt keeps stdout to the answer only.
-    exec llama-cli "''${common[@]}" -no-cnv -n "$N" --no-display-prompt -p "$*"
+    # llama.cpp b8770 reworked llama-cli into a chat-only tool: -no-cnv is a
+    # non-fatal warning (the chat loop runs regardless) and --no-display-prompt
+    # is parsed but never read. Without -st the loop re-prompts on stdin EOF
+    # forever once -p is consumed, spewing "\n> " indefinitely — the observed
+    # runaway. -st (--single-turn) breaks after the first response; -n caps
+    # generation as before.
+    exec llama-cli "''${common[@]}" -st -n "$N" -p "$*"
   '';
 }
