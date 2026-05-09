@@ -129,3 +129,14 @@ Helsinki) up 31d10h — still not region-wide. want **unchanged**
 (nv1 `system-features` narrow), nv1-only, relay1 eval-identical at
 cce49ee and 80a9212. Dry-build PASS (56 drvs / 4 fetch / 0.8 KiB).
 Recovery steps and limine-12.1.0 caution above unchanged.
+
+### drift @ 6753fd8 (2026-05-09, r15)
+
+Still **FULLY DOWN** — re-probed: ICMP 3/3 packets lost (100%), TCP/22
+connection-timeout. No state change since 80a9212. web2 (same Hetzner
+Helsinki) up 31d10h — still not region-wide. want **unchanged**
+`dxirzajg…549bd84` — only closure deltas since 80a9212 are `b2d179c`
+(dictation vocab biasing) and `f94448e` (sem-grep hybrid retrieval),
+both `modules/home/desktop` packages, nv1-only; relay1 eval-identical
+at 80a9212 and 6753fd8. Dry-build PASS (56 drvs / 4 fetch / 0.8 KiB,
+unchanged). Recovery steps and limine-12.1.0 caution above unchanged.

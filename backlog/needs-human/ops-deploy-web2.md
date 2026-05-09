@@ -393,3 +393,35 @@ intervening evals populated more deps), relay1 56/4/0.8K (was
 (nixpkgs 4.6d, hm 1.2d, srvos 2.7d, nixos-hw 2.4d, nix-index-db 1.3d,
 nixvim 4.2d) — no new bump-* filed. Reconcile unchanged: `kin deploy
 web2`, then recover relay1 (`ops-relay1-recover.md`).
+
+### drift @ 6753fd8 (2026-05-09, r15)
+
+**carries 13 holds — want UNCHANGED.** Two closure-affecting commits
+since 80a9212 (38be12c): `b2d179c` (dictation vocab biasing) and
+`f94448e` (sem-grep hybrid retrieval) — both touch
+`packages/{ptt-dictate,sem-grep,transcribe-cpu,transcribe-npu}` pulled
+only via `modules/home/desktop` (nv1). Re-evaled web2 at 6753fd8 →
+`msim209r…549bd84` identical to 80a9212; relay1 `dxirzajg…549bd84`
+identical. Have unchanged c27fxv31 (gen-25, Apr-24,
+`26.05.20260418.b121…`) — uptime 31d10h, still degraded, booted
+`zmk2wdqzx…20260405` ≠ current (no reboot since gen<=24).
+
+```
+web2:   have c27fxv31… (gen-25, Apr-24)  want msim209r…549bd84   carries 13  degraded   31d10h
+relay1: FULLY DOWN (ICMP 100% loss, TCP/22 timeout)              want dxirzajg…549bd84
+nv1:    not-on-mesh                                              want mbw1f3pr…549bd84  (was isgj6yg9)
+```
+
+Failed units on web2 still **2**:
+`acme-order-renew-gts.zimbatm.com.service` last fire Sat May-9 02:26:06
+status=1 (same fire as 80a9212 entry, 17h ago, next Sun May-10 02:26 —
+see `ops-web2-acme-renew.md`); `restic-backups-gotosocial.service`
+last fire Sat May-9 19:00:08 ExecStartPre=1 (one more hourly cycle since
+80a9212's 19:00:06; main never starts), next 20:00.
+
+Dry-build 3/3 PASS: web2 141/32/118.0M (unchanged @ 80a9212), relay1
+56/4/0.8K (unchanged), nv1 542/1279/4.4G (was 555/1331/4.8G — fetches
+landed). Externals all <7d (nixpkgs 4.7d, hm 1.3d, srvos 2.7d, nixos-hw
+2.5d, nix-index-db 1.3d, nixvim 4.2d) — no new bump-* filed. Reconcile
+unchanged: `kin deploy web2`, then recover relay1
+(`ops-relay1-recover.md`).

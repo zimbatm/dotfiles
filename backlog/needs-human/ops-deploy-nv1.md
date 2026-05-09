@@ -420,3 +420,28 @@ blocked on relay1 recovery.**
 
 > META: drift append-log now has **8** entries in this file (>3
 > trigger). Compact e960caf..80a9212 into the table on next META round.
+
+### drift @ 6753fd8 (2026-05-09, r15)
+
+```
+have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
+want: /nix/store/mbw1f3pr…-nixos-system-nv1-26.05.20260505.549bd84   (was isgj6yg9)
+```
+
+Two closure-affecting commits since 80a9212 (38be12c), both
+**nv1-only** desktop packages: `b2d179c` (vocab biasing — ptt-dictate
++15L, transcribe-cpu +29L, transcribe-npu +31L all source
+`lib/dictation-vocab.sh`, lands via `modules/home/desktop`) and
+`f94448e` (sem-grep hybrid FTS5/BM25 + RRF retrieval, +5L net, also
+desktop-only). relay1 `dxirzajg…549bd84` and web2 `msim209r…549bd84`
+eval-identical at 80a9212 and 6753fd8.
+
+Dry-build PASS: nv1 542 drvs / 1279 fetch / 4.4 GiB (was 555/1331/4.8G
+@ 80a9212). New runtime check post-deploy: (1) `ptt-dictate --vocab`
+emits the sem-grep-mined hint list; (2) `sem-grep "test query"` shows
+the BM25 leg in `--explain` output (FTS5 table populated). Layered on
+top of the system-features and builders.hcloud-07 checks above.
+**Reachability still blocked on relay1 recovery.**
+
+> META: drift append-log now has **9** entries in this file (>3
+> trigger). Compact e960caf..6753fd8 into the table on next META round.
