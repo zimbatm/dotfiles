@@ -103,7 +103,11 @@
   # because the nixpkgs config/nix.nix module and the srvos nix-experimental
   # mixin both set system-features at default priority — a plain assignment
   # would merge with theirs, not replace.
-  nix.settings.system-features = lib.mkForce [ "kvm" "uid-range" "recursive-nix" ];
+  nix.settings.system-features = lib.mkForce [
+    "kvm"
+    "uid-range"
+    "recursive-nix"
+  ];
 
   # sudo/login/unlock via YubiKey touch (FIDO2). Enroll: pamu2fcfg > ~/.config/Yubico/u2f_keys
   security.pam.u2f = {

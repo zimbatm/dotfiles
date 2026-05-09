@@ -26,7 +26,9 @@ in
     paths = [ "/var/lib/gotosocial" ];
     repository = "sftp:${rsyncnet}:gotosocial";
     extraOptions = [
-      "sftp.command='${pkgs.sshpass}/bin/sshpass -f ${kin.gen."user/gotosocial-rsyncnet".password} ssh -o BatchMode=no -o StrictHostKeyChecking=accept-new ${rsyncnet} -s sftp'"
+      "sftp.command='${pkgs.sshpass}/bin/sshpass -f ${
+        kin.gen."user/gotosocial-rsyncnet".password
+      } ssh -o BatchMode=no -o StrictHostKeyChecking=accept-new ${rsyncnet} -s sftp'"
     ];
     pruneOpts = [
       "--keep-daily 7"
