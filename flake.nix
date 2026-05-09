@@ -138,6 +138,7 @@
           ask-cuda = call ./packages/ask-cuda;
           kin-opts = call ./packages/kin-opts;
           infer-queue = call ./packages/infer-queue;
+          afk-bench = call ./packages/afk-bench;
           llm-router = call ./packages/llm-router;
           agent-meter = call ./packages/agent-meter;
           now-context = call ./packages/now-context;
