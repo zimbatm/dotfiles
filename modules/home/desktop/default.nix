@@ -28,6 +28,7 @@ in
   imports = [
     ../terminal
     ./activitywatch.nix
+    ./afk-bench.nix
     ./live-caption.nix
     ./sem-grep.nix
   ];

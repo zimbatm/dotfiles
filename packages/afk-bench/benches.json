@@ -1,0 +1,42 @@
+[
+  {
+    "name": "ask-local-tok-s",
+    "path": "packages/ask-local/bench.sh",
+    "args": [],
+    "lane": "arc",
+    "max_wall": 600,
+    "last_run": null
+  },
+  {
+    "name": "ask-local-agent-mem",
+    "path": "packages/ask-local/bench.sh",
+    "args": ["--mem"],
+    "lane": "arc",
+    "max_wall": 900,
+    "last_run": null
+  },
+  {
+    "name": "ask-local-diff-gate",
+    "path": "packages/ask-local/bench-diff-gate.sh",
+    "args": [],
+    "lane": "arc",
+    "max_wall": 600,
+    "last_run": null
+  },
+  {
+    "name": "ask-cuda-structured-cot",
+    "path": "packages/ask-cuda/bench-structured-cot.sh",
+    "args": [],
+    "lane": "cuda",
+    "max_wall": 900,
+    "last_run": null
+  },
+  {
+    "name": "dictate-latency",
+    "path": "tests/bench-dictate.sh",
+    "args": [],
+    "lane": "arc",
+    "max_wall": 600,
+    "last_run": null
+  }
+]
