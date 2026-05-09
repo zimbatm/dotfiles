@@ -2,6 +2,9 @@
 permit(principal, action, resource == Service::"attest")
   when { principal in Fleet::"bir7vyhu7hjc6ybptojyjerh2nepv6oe" };
 
+permit(principal, action, resource == Service::"builders")
+  when { principal in Fleet::"bir7vyhu7hjc6ybptojyjerh2nepv6oe" };
+
 permit(principal, action, resource == Service::"identity")
   when { principal in Fleet::"bir7vyhu7hjc6ybptojyjerh2nepv6oe" };
 
