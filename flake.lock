@@ -227,11 +227,11 @@
         "settle": "settle"
       },
       "locked": {
-        "lastModified": 1777226996,
-        "narHash": "sha256-58KA29cwf9MfQXYEh+ZcBvcJg/dRby1yMQIupsm1VzE=",
+        "lastModified": 1778340485,
+        "narHash": "sha256-l21KCalCDCOCfEJihdW/HF6A6Ts5B4DZ/wHhvmmJLsg=",
         "ref": "refs/heads/main",
-        "rev": "0bfa6d359e05f012fec546c079350b4220ab0500",
-        "revCount": 4398,
+        "rev": "303dcb2e8c970acbd4b101c0eada2c0e9678566e",
+        "revCount": 4851,
         "type": "git",
         "url": "ssh://git@github.com/assise/kin"
       },
@@ -280,11 +280,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1777222691,
-        "narHash": "sha256-tepDivCJnt+wNmpfl7Cg60NFcPNfIJOs+svlju1XC5w=",
+        "lastModified": 1778325199,
+        "narHash": "sha256-IY8UHANLNbMk0L4aqWw3y31PpitXCA3FiD3ghztZvk0=",
         "ref": "refs/heads/main",
-        "rev": "6a95c23ab4731d3c791682705d1f38fbb4fafe83",
-        "revCount": 1897,
+        "rev": "70ff91157e85959840e446592ca081a2fe4816da",
+        "revCount": 2253,
         "type": "git",
         "url": "ssh://git@github.com/assise/maille"
       },
@@ -542,11 +542,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1777224431,
-        "narHash": "sha256-DRS5rkNO3rvlLM2Rf95Z+ucAFm1OLM/purb/miypVqM=",
+        "lastModified": 1777369082,
+        "narHash": "sha256-yM8W01nalto3tAC++/ZfUtJnjBSgUZlfbc8I75mx71M=",
         "ref": "refs/heads/main",
-        "rev": "b5001e0b5e54a5d542276716ada71ee23a890eac",
-        "revCount": 838,
+        "rev": "26669578717f5c2e25981836c3d458a114554e8b",
+        "revCount": 867,
         "type": "git",
         "url": "ssh://git@github.com/assise/settle"
       },
