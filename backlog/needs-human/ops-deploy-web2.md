@@ -161,3 +161,24 @@ ietsd) is the next thing to try since the root cause was never journaled.
 Externals stale (filed `bump-nixpkgs.md`): nixpkgs 16d, srvos 15d,
 nixos-hardware 15d, nix-index-database 13d, home-manager 12d, nixvim
 12d — all upstream MOVED (ls-remote verified).
+
+### drift @ dde1472 (2026-05-09, same day as 23975b3 entry)
+
+**carries 5→6.** Single closure-affecting commit since 23975b3:
+a06dd70 (merge of 4b5ca4e) `nix flake update nixpkgs` 0726a0ec→549bd84d
+(2026-04-22→2026-05-05, flake.lock only). Want vnpjyvr1→cqs9rgp0
+(`26.05.20260418.b12141e` → `26.05.20260505.549bd84`). Have unchanged
+c27fxv31 (gen-25, Apr-24). NEUTRAL: 1c08114 (packages/ask-cuda
+--structured-think — not in any host closure, verified `grep -rn
+ask-cuda machines/ modules/ kin.nix gen/` empty).
+
+```
+web2:   have c27fxv31… (gen-25, Apr-24)  want cqs9rgp0…   carries 6   degraded (acme)  31d6h
+relay1: have ???      (Ubuntu, not NixOS)                 want 712jwrfb…
+```
+
+acme-order-renew last fire Sat May-9 02:26:06 ExecMainStatus=1, next
+Sun May-10 02:26 — same fire as 23975b3 entry, no NEW data. Dry-build
+3/3: web2 175/67/291.9M, relay1 87/17/145.5M, nv1 591/1387/5.0G.
+Reconcile unchanged: `kin deploy web2`, then recover relay1
+(`ops-relay1-recover.md`).
