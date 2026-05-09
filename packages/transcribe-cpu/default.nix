@@ -29,6 +29,34 @@ pkgs.writeShellApplication {
 
     [[ -f "$MODEL/encoder.int8.onnx" ]] || { echo "transcribe-cpu: model not found: $MODEL" >&2; exit 1; }
 
+    # Decoder biasing: project jargon as sherpa-onnx hotwords (contextual
+    # biasing built into the TDT transducer decoder — a hard lattice rescore,
+    # stronger than whisper's soft --prompt). sherpa-onnx needs the model's
+    # bpe.vocab to encode hotword text into BPE pieces, and hotwords only take
+    # effect under modified_beam_search; without bpe.vocab the flag would error
+    # so the whole bias is gated on its presence and inert otherwise. Score is
+    # a tunable: higher = stronger pull, risk of overcorrection — the WER bench
+    # (backlog/needs-human/ops-dictation-vocab-bench.md) decides where it lands.
+    # TRANSCRIBE_CPU_HOTWORDS=0 disables for an A/B run.
+    # shellcheck source=/dev/null
+    . ${../lib/dictation-vocab.sh}
+    HOTWORD_ARGS=()
+    if [[ -f "$MODEL/bpe.vocab" && "''${TRANSCRIBE_CPU_HOTWORDS:-1}" != 0 ]]; then
+      HW="''${XDG_RUNTIME_DIR:-/tmp}/transcribe-cpu-hotwords.$$"
+      dictation_vocab 200 > "$HW" || true
+      if [[ -s "$HW" ]]; then
+        trap 'rm -f "$HW"' EXIT
+        HOTWORD_ARGS=(
+          --bpe-vocab="$MODEL/bpe.vocab"
+          --decoding-method=modified_beam_search
+          --hotwords-file="$HW"
+          --hotwords-score="''${TRANSCRIBE_CPU_HOTWORDS_SCORE:-1.5}"
+        )
+      else
+        rm -f "$HW"
+      fi
+    fi
+
     WAV="''${1:-/dev/stdin}"
     sherpa-onnx-offline \
       --encoder="$MODEL/encoder.int8.onnx" \
@@ -37,6 +65,7 @@ pkgs.writeShellApplication {
       --tokens="$MODEL/tokens.txt" \
       --model-type=nemo_transducer \
       --num-threads="$THREADS" \
+      "''${HOTWORD_ARGS[@]}" \
       "$WAV" 2>/dev/null \
     | jq -r 'select(type=="object" and has("text")) | .text' \
     | sed 's/^ *//;s/ *$//'

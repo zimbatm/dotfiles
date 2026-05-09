@@ -33,8 +33,19 @@ pkgs.writeShellApplication {
 
     [[ -f "$MODEL/openvino_encoder_model.xml" ]] || { echo "transcribe-npu: model not found: $MODEL" >&2; exit 1; }
 
+    # Decoder biasing: project jargon as a whisper initial prompt, threaded
+    # via env so callers (ptt-dictate, infer-queue) can override or disable
+    # (TRANSCRIBE_NPU_PROMPT="" → no bias). Same cached list as the other lanes.
+    # shellcheck source=/dev/null
+    . ${../lib/dictation-vocab.sh}
+    if [[ -z "''${TRANSCRIBE_NPU_PROMPT+set}" ]]; then
+      TRANSCRIBE_NPU_PROMPT=$(dictation_vocab 200 | tr '\n' ' ')
+      TRANSCRIBE_NPU_PROMPT="''${TRANSCRIBE_NPU_PROMPT:0:600}"
+    fi
+    export TRANSCRIBE_NPU_PROMPT
+
     exec python3 - "$MODEL" "$DEVICE" "''${1:-/dev/stdin}" <<'PY'
-    import sys, numpy as np, soundfile as sf, openvino as ov
+    import os, sys, numpy as np, soundfile as sf, openvino as ov
     from transformers import WhisperProcessor
 
     model_dir, device, wav = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -50,9 +61,25 @@ pkgs.writeShellApplication {
     hidden = enc({enc.inputs[0].any_name: feat})[enc.outputs[0]]
 
     tok = proc.tokenizer
-    ids = [tok.convert_tokens_to_ids(t) for t in ("<|startoftranscript|>", "<|notimestamps|>")]
+    sot, nots = (tok.convert_tokens_to_ids(t)
+                 for t in ("<|startoftranscript|>", "<|notimestamps|>"))
     eos = tok.eos_token_id
-    for _ in range(224):
+    # Whisper initial-prompt biasing: <|startofprev|> + prompt tokens +
+    # <|startoftranscript|>. Soft n-gram conditioning, same mechanism as
+    # whisper.cpp --prompt. Capped to 96 tokens — the decoder here re-runs
+    # the full sequence each step (no KV cache on this OV path) so a long
+    # prefix is paid 224x. The 448-token decoder ctx allows up to 224 but
+    # 96 keeps the latency hit ~1.4x while still covering ~80 jargon terms.
+    ids = []
+    prompt = os.environ.get("TRANSCRIBE_NPU_PROMPT", "").strip()
+    if prompt:
+        sop = tok.convert_tokens_to_ids("<|startofprev|>")
+        unk = getattr(tok, "unk_token_id", None)
+        if sop is not None and sop != unk:
+            ids = [sop] + tok.encode(" " + prompt, add_special_tokens=False)[-96:]
+    ids += [sot, nots]
+    start = len(ids)  # decode the transcript only, not the prompt prefix
+    for _ in range(min(224, 448 - len(ids))):
         inp = {}
         for port in dec.inputs:
             n = port.any_name
@@ -62,7 +89,7 @@ pkgs.writeShellApplication {
         nxt = int(dec(inp)[dec.outputs[0]][0, -1].argmax())
         ids.append(nxt)
         if nxt == eos: break
-    print(tok.decode(ids, skip_special_tokens=True).strip())
+    print(tok.decode(ids[start:], skip_special_tokens=True).strip())
     PY
   '';
 }

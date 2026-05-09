@@ -658,6 +658,67 @@ def cmd_refs(args):
         print(f"{loc}:{line}")
 
 
+# --- vocab: decoder-biasing word list for the dictation pipeline -----------
+# Identifier-shaped, reasonable length, not punctuation soup. dots/dashes are
+# allowed because Nix attrpaths and package names use them (kin.nix, sem-grep).
+VOCAB_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.-]{2,39}$")
+# Language keywords + generic programming nouns + bare common English. These
+# dominate the refs table by raw DF but are noise for ASR biasing — the model
+# already knows them, and a long prompt of generics dilutes the jargon signal.
+VOCAB_STOP = frozenset("""
+    let in if then else with rec inherit import builtins true false null or and
+    def class return yield from as for while try except finally pass break
+    continue lambda not is none self args kwargs print isinstance super
+    pub mod use mut impl struct enum trait match where async await dyn ref
+    local function echo exit shift case esac done fi elif read printf source
+    set unset export eval test command type hash alias declare typeset
+    the this that these those was were has had have are not all any can may
+    src lib bin etc tmp var usr dev opt run sys proc home root user
+    pkgs config options modules system services environment programs
+    name path file line text data value key index list dict tuple item
+    str int float bool len map env cmd out err log msg ret res buf ptr cur
+    main init test setup teardown update build check make clean install
+    get set new old add del put pop push end top low high min max sum avg
+    foo bar baz qux tmp aux util utils misc common core base impl
+    arg argv argc opts flags params input output result status err
+    json yaml toml xml html css js ts py sh nix txt md rst cfg ini
+    true false null none nil void unit some ok err result option
+""".split())
+
+
+def cmd_vocab(args):
+    """Top-N project identifiers by document frequency, mined from the existing
+    `refs` table (treesitter identifier-use sites populated at index time).
+    This is the decoder-biasing list for the dictation pipeline —
+    packages/lib/dictation-vocab.sh caches it under $XDG_RUNTIME_DIR and the
+    three transcribers thread it as --prompt / --hotwords-file / initial_prompt.
+    Pure sqlite, no embed/model load (cheap like `refs`). Recency is implicit:
+    cmd_index deletes refs for files no longer git-tracked, so the table always
+    reflects the *current* working trees, not historical noise."""
+    con = db()
+    if not con.execute("SELECT 1 FROM refs LIMIT 1").fetchone():
+        # Cold index: emit nothing. dictation-vocab.sh notices the empty
+        # output and falls back to its static seed list.
+        return
+    rows = con.execute(
+        "SELECT symbol, COUNT(DISTINCT repo || '/' || path) AS df "
+        "FROM refs GROUP BY symbol ORDER BY df DESC, symbol").fetchall()
+    out = []
+    for sym, df in rows:
+        if df < 2:
+            break  # df-sorted: everything after is also a singleton (typo/local)
+        if not VOCAB_RE.match(sym) or sym.lower() in VOCAB_STOP:
+            continue
+        out.append((sym, df))
+        if len(out) >= args.top:
+            break
+    if args.json:
+        print(json.dumps([{"term": s, "df": d} for s, d in out]))
+    else:
+        for s, _ in out:
+            print(s)
+
+
 def cmd_query(args):
     """Hybrid retrieval over the chunks index. --mode picks the leg(s):
       dense   — brute-force cosine over the bge-small embeddings (original path)
@@ -774,10 +835,18 @@ def main():
     tp.add_argument("text")
     tp.add_argument("-n", type=int, default=2)
     tp.set_defaults(fn=cmd_runs)
+    vp = sub.add_parser("vocab")
+    vp.add_argument("--top", type=int, default=200, metavar="N")
+    fmt = vp.add_mutually_exclusive_group()
+    fmt.add_argument("--lines", action="store_true",
+                     help="one term per line (default)")
+    fmt.add_argument("--json", action="store_true",
+                     help='[{"term":..,"df":..}, ...]')
+    vp.set_defaults(fn=cmd_vocab)
     # bare `sem-grep "<text>"` → query
     argv = sys.argv[1:]
     if argv and argv[0] not in {"index", "query", "sig", "hist", "index-log",
-                                "log", "refs", "index-runs", "runs",
+                                "log", "refs", "index-runs", "runs", "vocab",
                                 "-h", "--help"}:
         argv = ["query", *argv]
     args = ap.parse_args(argv)
