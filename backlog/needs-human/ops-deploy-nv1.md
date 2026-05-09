@@ -20,17 +20,20 @@ but nv1 was NOT in that batch (off-mesh from homespace) — if Jonas
 deployed nv1 locally at the same time it'd be at 77dfr1xn; otherwise
 sxmv9yvi carry-forward stays suspect.
 
-## Latest status (drift @ fcc6b68, 2026-04-24)
+## Latest status (drift @ 6753fd8, 2026-05-09)
 
 ```
-have: ???  (not-on-mesh — desktop unreachable; carry-forward sxmv9yvi… from 53bed8f suspect)
-want: /nix/store/77dfr1xn…-nixos-system-nv1-26.05.20260418.b12141e
+have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
+want: /nix/store/mbw1f3pr…-nixos-system-nv1-26.05.20260505.549bd84
 ```
 
-nixpkgs b12141e unchanged. Dry-build: 469 drvs / 1233 fetch (4.4 GiB) —
-DOWN from 513/1354 (kin/maille/hm/nixvim/srvos all on cache.assise).
+Want progression since fcc6b68 (Apr-24): 77dfr1xn → 1mdzqizi (e960caf) →
+n5smybmw (671f35b) → zi5as60q (e3c1cea) → 8l90l7hx (8231b3d) → qjdsdd97
+(23975b3) → rsb8r0kg (9def97e) → 53s3xn5k (cce49ee) → isgj6yg9 (80a9212)
+→ mbw1f3pr (6753fd8). Dry-build 542 drvs / 1279 fetch / 4.4 GiB.
 Last confirmed have==want on origin/main: `www09p3bx` @ 9403a95
-(≈ e196255 deploy, 2026-04-11).
+(≈ e196255 deploy, 2026-04-11). nv1 unprobeable since — relay1 ProxyJump
+leg dead (`ops-relay1-recover.md`).
 
 ## Reconcile
 
@@ -137,8 +140,35 @@ Then walk the runtime checks. Then delete this file.
 | efd470a | internal kin →d1265fc0 iets →c70f78f8 llm-agents →b518f1b6 | nv1+web2 |
 | 8c47c57 | zimbatm flake update hm/iets/kin/llm-agents/maille/nix-skills/nixos-hw/nixvim/srvos (NOT nixpkgs) | all |
 | 778e7b8 | internal kin →bc87fa28 iets →5e52f1c2 llm-agents →6c3ff21f +maille+settle; gen/ regen | all |
+| f5bd72e | flake update — nixpkgs b12141e→0726a0e + hm/iets/kin/llm-agents/maille/nix-index-db/nixvim/settle | all |
+| c37cecc 66b1cfa | vim-utils pname overlay added then dropped (nixvim e61a31b5→d404af65 caught up) | nv1 |
+| 94dd7b4 | kin 65eccea0→0bfa6d35 + iets/nix-skills/llm-agents bump | all |
+| 22bbd1c | home-manager 6f59831b→c55c498c (programs.firefox.configPath warn) | nv1 |
+| 232ec0fb | man-here `annotate` verb + reads.jsonl instrument | nv1 |
+| e2eda857 | adopt-parakeet-cpu-lane: NEW transcribe-cpu (sherpa-onnx) + ptt-dictate `--backend=auto` + bench-dictate.sh | nv1 |
+| 7bdd14f | **drop CROPS vfio passthrough, enable NVIDIA driver for CUDA** | nv1 |
+| 052a455 aa07e81 3a81166 | deepfilter: disable, fix, then **remove** (pipewire 1.6 schema bug) | nv1 |
+| 7790634 | NEW packages/ask-cuda — CUDA-13 llama.cpp wrapper for Qwen3.6-35B-A3B | nv1 |
+| 35b6f06 | llm-router: support NVIDIA upstream | nv1 |
+| 2313ae2 | NEW services/llm-nvidia-adapter (NIM → LiteLLM Anthropic shim, pendingOn key) | nv1 |
+| 23975b3 | install distro input; **drop modules/nixos/niri.nix**; nv1 config rework | nv1 |
+| 2844219 0837c94 | limine 11.4.1 hotfix added then **removed** (modules/nixos/limine-hotfix.nix dropped, fully landed) | all |
+| 4b5ca4e | nixpkgs bump | all |
+| ecdc26f a1a5da4 ad3ea1a | internal kin/iets/nix-skills/llm-agents bumps | all |
+| ffb9aeb | kin llm-adapter | all |
+| bfbaf59 eceb5e4 | srvos + nixos-hardware bumps | all |
+| e4db263 | nv1: drop stale VFIO comments | nv1 |
+| 74d901a | llm-router model-keyed backend lifecycle (spawn/idle-reap/LRU) | nv1 |
+| a3f8a1c | afk-bench: opportunistic local-inference bench drain on idle nv1 | nv1 |
+| a1a615b | home-manager c55c498c→fdb2ccba | nv1 |
+| 318976e | nix-index-database b8eb7ace→dd2d0e3f | nv1 |
+| a2759f9 | kin.nix `builders.hcloud-07` → nv1 `nix.buildMachines` + Cedar permit | all |
+| 5a218c6 | nv1: `nix.settings.system-features = mkForce [kvm uid-range recursive-nix]` (drop big-parallel/nixos-test/benchmark → dispatch to hcloud-07) | nv1 |
+| f94448e | sem-grep hybrid FTS5/BM25 + RRF retrieval | nv1 |
+| b2d179c | dictation vocab biasing — ptt-dictate/transcribe-cpu/transcribe-npu source `lib/dictation-vocab.sh` | nv1 |
 
-Closure-neutral (verified): 2efe8bf, c27c5c1, e170608, 6bf3705,
+Closure-neutral (verified): a8d3abd (ask-cuda --structured-think — not in
+host closure), 03bb206 (nixvim bump), 2efe8bf, c27c5c1, e170608, 6bf3705,
 d00a686, 9dbb216, 8172dfe, 24cc8e8, 2898dcd, 26cb8a9 (nv1-neutral),
 bfcd408 (relay1-only), 6673c0c (nv1-neutral internal bump), 9ba7bf5
 (.envrc), ead5fd4 (treefmtFor devshell), 4ded977 (backlog), 821b625
@@ -171,10 +201,10 @@ Walk these at the nv1 desk after deploy:
 - **llm-router** — `curl -s localhost:8090/v1/models` responds; small-prompt routes to ask-local:8088
 - **wake-listen** — `systemctl --user status wake-listen` active (not crash-looping; StartLimitBurst catches it); `journalctl --user -u wake-listen -n5` shows VAD probabilities, no TypeError/OpConversionFailure
 - **transcribe-npu** — invoke once with no network; model loads from store path, no HF Hub fetch in stderr
-- **niri** — GDM picker lists "Niri"; session works; switching back to GNOME unaffected; waybar shows icon glyphs not tofu
+- ~~**niri**~~ — **MOOT** (23975b3 dropped modules/nixos/niri.nix). Confirm Niri *absent* from GDM picker post-deploy.
 - **sem-grep** — `sem-grep index && sem-grep "kin deploy"` returns hits; `sem-grep hist "<q>"` returns history lines; `sem-grep index-log && sem-grep log "wake-listen crash"` returns journald lines; walk packages/sem-grep/bench-log.txt (≥7/10 pass = keep, else rm verb + live-caption fold)
 - ~~**crops-userland**~~ — **MOOT** (e98e1c5 set home.crops.enable=false, module stubbed)
-- **vfio-host** (kernel side, vendored) — `lsmod | grep -E 'vfio_pci|vfio_iommu'` loaded; `grep vfio-pci /etc/modprobe.d/nixos.conf` shows `ids=10de:28a0,10de:22be` + 3 softdeps (nvidia/nouveau/amdgpu)
+- ~~**vfio-host**~~ — **MOOT** (7bdd14f dropped CROPS vfio passthrough). Confirm `vfio_pci` *not* loaded and NVIDIA driver active instead.
 - **live-caption** — `systemctl --user status live-caption-log` active; `live-caption tail` follows today's jsonl; `live-caption off` stops unit; nightly reindex prunes >30d; `journalctl --user -u live-caption-log -n20` shows heartbeat; forced transcribe error surfaces in journal
 - **man-here** — `man-here jq` renders store-exact docs
 - **tab-tap** — Firefox about:addons lists tab-tap; `tab-tap read` returns Readability text of active tab
@@ -186,7 +216,7 @@ Walk these at the nv1 desk after deploy:
 - **ask-local --agent** — `ask-local --agent "<goal>"` ≤4-turn ReAct; walk `packages/ask-local/bench-agent.jsonl` (20 goals, expect_tool+expect_substr); tools.json CLIs resolve on PATH
 - **ask-local --mem** — `packages/ask-local/bench.sh --mem` runs cold×3 / warm-up+index / warm×3 over the 20-case agent bench; record `cold=X/20 warm=Y/20 dP50=+Nms PASS|FAIL`. Bar: warm ≥ cold+3 ∧ dP50 ≤ +150ms. PASS → flip `--mem` default on + llm-router keeps repeat-intent goals local; FAIL → memory-shaped goals route to cloud regardless of complexity gate. Also: `sem-grep index-runs && sem-grep runs "am I AFK?"` returns ≥1 JSON trace line
 - **sem-grep timer** — `systemctl --user list-timers | grep sem-grep` shows nightly index-log; `which sem-grep` on PATH (was only hist-sem alias before)
-- **deepfilter** — `pactl list sources short | grep -i deepfilter` shows virtual mic; `systemctl --user status pipewire` clean; speak with fan noise → output denoised
+- ~~**deepfilter**~~ — **MOOT** (3a81166 removed module). Confirm *absent* from PipeWire graph: `pw-cli ls Node | grep -i deepfilter` → nothing; `systemctl --user status pipewire` clean.
 - **CA derivations** — `nix config show | grep ca-derivations` shows enabled; build a trivial CA drv to confirm store accepts
 - **iets** — `which iets` on PATH; `iets --version`
 - **fetch_model** — `rm -rf ~/.local/share/ask-local/models/<one>`; `ask-local "<q>"` auto-fetches (curl progress in stderr) instead of printing fetch-hint+exit-1. Same for sem-grep/say-back/agent-eyes/ptt-dictate first-run
@@ -199,6 +229,18 @@ Walk these at the nv1 desk after deploy:
 - **tuicr** — `tuicr` over a staged diff renders TUI; comments export as markdown for backlog/ round-trip
 - **ask-local perms** — `stat -c '%a' ~/.local/state/ask-local{,/*.jsonl}` shows 700/600 (c10990b hardening)
 - **restic-gotosocial** (web2, carried) — `systemctl status restic-backups-gotosocial.{service,timer}`
+- **man-here annotate** — `man-here annotate <cmd>` emits pname-major notes + appends reads.jsonl
+- **ptt-dictate cpu lane** — `ptt-dictate --backend=cpu` invokes transcribe-cpu (sherpa-onnx parakeet); `--backend=auto` picks cpu when NPU unavailable; `bench-dictate.sh` reports per-lane latency
+- **NVIDIA/CUDA** — `nvidia-smi` reports RTX 4060 with CUDA-13
+- **ask-cuda** — `ask-cuda "<p>"` loads Qwen3.6-35B-A3B and answers
+- **llm-nvidia-adapter** — unit inert until `kin set llm-nvidia-adapter/api-key/_shared/key` (see `ops-verify-nvidia-nim-adapter.md`)
+- **afk-bench** — `systemctl --user list-timers | grep afk-bench` present; fires on AFK window, drains `infer-queue` (see `ops-afk-bench-stability.md`)
+- **ask-local --serve** — accepts `--model M` / `--port N`; bare names resolve under `$XDG_DATA_HOME/llama`
+- **llm-router lifecycle** — spawn/idle-reap/LRU observable via `/v1/models` + `decisions.jsonl` `{spawn,evict,reuse}` lines (see `adopt-llm-router-model-warm.md`)
+- **builders.hcloud-07** — `nix store info --store ssh-ng://hcloud-07` resolves; `nix build --max-jobs 0 <expr>` dispatches remotely (key drop required first — `ops-builders-key-drop.md`)
+- **system-features narrow** — `nix config show | grep system-features` shows exactly `kvm uid-range recursive-nix`; a big-parallel drv `--dry-run` reports `will be built` on hcloud-07; KVM/podman still work
+- **dictation vocab biasing** — `ptt-dictate --vocab` emits the sem-grep-mined hint list; bench in `ops-dictation-vocab-bench.md`
+- **sem-grep hybrid retrieval** — `sem-grep "<q>" --explain` shows the BM25 leg (FTS5 table populated)
 
 ---
 
@@ -208,218 +250,7 @@ Walk these at the nv1 desk after deploy:
 re-compacts into the table above when this section exceeds 3 entries)
 
 <!-- compacted @ b236e97 (META r1, 2026-04-24): folded 6a4ed7a+1490f45+f4d909c+68ab318+fcc6b68 into table+checks above. want progression dvgqw9cg→av9v7mmc→glivxmgg→48k7pdv5→z0b9vg9s→77dfr1xn. nv1 not-on-mesh entire window; relay1+web2 both human-deployed Apr-24 20:06. -->
-
-### drift @ e960caf (2026-04-26)
-
-```
-have: ???  (not-on-mesh — re-probed, kin status `?` unreachable; carry-forward sxmv9yvi… still suspect)
-want: /nix/store/1mdzqizi…-nixos-system-nv1-26.05.20260422.0726a0e   (was 77dfr1xn)
-```
-
-Dry-build: 464 drvs / 1402 fetch / 4.3 GiB (was 469/1233/4.4G — drvs↓5,
-fetch↑169 from nixpkgs churn). Bisect fcc6b68..e960caf, 2 source commits:
-
-| commit | what | scope |
-|---|---|---|
-| f5bd72e | **flake update** — nixpkgs b12141e→0726a0e + hm/iets/kin/llm-agents/maille/nix-index-db/nixvim/settle. **BROKE nv1 eval** (vim-utils packDir requires plugin.pname) until c37cecc | all |
-| c37cecc | overlays/vim-utils-pname-fix.nix workaround — restores nv1 eval. relay1/web2 closure-NEUTRAL (no nvim) | nv1 |
-
-New runtime check: none (overlay is eval-fix only; tracked by
-backlog/bump-nixvim-drop-pname-workaround.md for removal once upstream
-catches up).
-
-### drift @ 671f35b (2026-04-26)
-
-```
-have: ???  (not-on-mesh — re-probed, kin status `?` unreachable; carry-forward sxmv9yvi… still suspect)
-want: /nix/store/n5smybmw…-nixos-system-nv1-26.05.20260422.0726a0e   (was 1mdzqizi)
-```
-
-Dry-build: 464 drvs / 1401 fetch / 4.3 GiB (was 464/1402/4.3G —
-near-identical, nixvim swap nets out). Bisect e960caf..671f35b, 1
-closure-affecting commit:
-
-| commit | what | scope |
-|---|---|---|
-| 66b1cfa | bump nixvim e61a31b5→d404af65; drop overlays/vim-utils-pname-fix.nix from flake.nix + common.nix + packages/nvim — upstream caught up, c37cecc workaround no longer needed | nv1 |
-
-79eb0ac (.envrc/default.nix iets-compat) + 1df9764 (merge marker)
-closure-NEUTRAL all 3 (default.nix is non-flake entrypoint, not in
-host closure). New runtime check: none (overlay removal is eval-only;
-nvim plugins should still load — covered by existing nvim startup
-check).
-
-### drift @ e3c1cea (2026-04-26)
-
-```
-have: ???  (not-on-mesh — re-probed, kin status `?` unreachable; carry-forward sxmv9yvi… still suspect)
-want: /nix/store/zi5as60q…-nixos-system-nv1-26.05.20260422.0726a0e   (was n5smybmw)
-```
-
-Dry-build: 464 drvs / 1401 fetch / 4.3 GiB (identical to 671f35b).
-Bisect 671f35b..e3c1cea, 2 closure-affecting commits (progression
-n5smybmw→4pc9a44c→zi5as60q):
-
-| commit | what | scope |
-|---|---|---|
-| 94dd7b4 | bump internal — kin 65eccea0→0bfa6d35 (104c, picks up evaluator flake.lock-bootstrap 8b24bfd5 + hetzner-gc 849f82dd) + iets/nix-skills/llm-agents; `kin gen` regen ssh/_shared/config + manifest.lock | all |
-| 22bbd1c | bump home-manager 6f59831b→c55c498c — **NEW eval warning** `programs.firefox.configPath` legacy default; nv1-only (relay1/web2 NEUTRAL, no hm) | nv1 |
-
-30fe0e2/194e4eb/16af6a4/e3c1cea backlog+meta-only NEUTRAL all 3. New
-runtime check: none (kin/iets are agent-tooling, hm bump is path-only).
-Firefox configPath warning needs a decision (pin `.mozilla/firefox`
-legacy vs migrate XDG) — filed backlog/fix-hm-firefox-configpath.md;
-silencing it is the fix, no deploy-time check.
-
-### drift @ 8231b3d (2026-04-26)
-
-```
-have: ???  (not-on-mesh — re-probed, kin status `?` unreachable; carry-forward sxmv9yvi… still suspect)
-want: /nix/store/8l90l7hx…-nixos-system-nv1-26.05.20260422.0726a0e   (was zi5as60q)
-```
-
-Dry-build: 458 drvs / 1202 fetch / 3.7 GiB (was 464/1400/4.3G — DOWN
-~200 fetch / 0.6G; prior round's cache.assise paths landed locally).
-Bisect 799f203..8231b3d, 2 closure-affecting commits (progression
-zi5as60q→i9j4sbg7→8l90l7hx), both nv1-only — relay1/web2 NEUTRAL
-verified eval-identical:
-
-| commit | what | scope |
-|---|---|---|
-| 232ec0fb | man-here: annotate verb + pname-major notes + reads.jsonl instrument (self'.man-here in modules/home/terminal) | nv1 |
-| e2eda857 | merge adopt-parakeet-cpu-lane: NEW packages/transcribe-cpu (parakeet-tdt via sherpa-onnx) + ptt-dictate `--backend=auto` lane router + bench-dictate.sh; transcribe-cpu pulled into closure transitively via ptt-dictate (self'.ptt-dictate in modules/home/desktop) | nv1 |
-
-New runtime checks: (1) `man-here annotate <cmd>` emits pname-major
-notes + appends reads.jsonl; (2) `ptt-dictate --backend=cpu` invokes
-transcribe-cpu (sherpa-onnx parakeet model) and types result; (3)
-`ptt-dictate --backend=auto` picks cpu when NPU unavailable; (4)
-`bench-dictate.sh` runs both lanes and reports latency.
-
-### drift @ 23975b3 (2026-05-09)
-
-```
-have: ???  (not-on-mesh — 17th unprobeable round; ProxyJump root@95.216.188.155 is
-            DOWN: relay1 not running NixOS, see ops-relay1-recover.md)
-want: /nix/store/qjdsdd97…-nixos-system-nv1-26.05.20260422.0726a0e   (was 8l90l7hx)
-```
-
-13-day drift gap (no `drift @` round Apr-26 → May-9). Dry-build:
-563 drvs / 1286 fetch / 4.9 GiB (was 458/1202/3.7G — UP ~84 fetch /
-1.2G; new CUDA-13 + parakeet model paths). 8 closure-affecting commits
-since 8l90l7hx, all nv1-only:
-
-| commit | what |
-|---|---|
-| 7bdd14f | drop CROPS vfio passthrough, enable NVIDIA driver for CUDA |
-| 052a455 | nv1: disable home.deepfilter (pipewire 1.6 schema bug) |
-| 7790634 | NEW packages/ask-cuda: CUDA-13 llama.cpp wrapper for Qwen3.6-35B-A3B |
-| aa07e81 | fix deepfilter pipewire 1.6 plugin lookup |
-| 35b6f06 | llm-router: support NVIDIA upstream |
-| 2313ae2 | NEW services/llm-nvidia-adapter: NVIDIA NIM → LiteLLM Anthropic shim (pendingOn key) |
-| 3a81166 | remove modules/home/desktop/deepfilter.nix |
-| 23975b3 | install distro input; drop modules/nixos/niri.nix; nv1 config rework |
-
-Plus fleet-wide 2844219 (limine 11.4.1) + gen/_policy/manifest.lock
-churn from 2313ae2.
-
-New runtime checks: (1) `nvidia-smi` reports RTX 4060 with CUDA-13;
-(2) `ask-cuda` loads Qwen3.6-35B-A3B and answers a prompt; (3)
-`llm-nvidia-adapter` unit inert until
-`kin set llm-nvidia-adapter/api-key/_shared/key` (see
-ops-verify-nvidia-nim-adapter.md); (4) deepfilter absent from
-PipeWire graph (`pw-cli ls Node | grep -i deepfilter` → nothing); (5)
-niri session removed from GDM.
-
-**Reachability blocked on relay1 recovery** — even if nv1 is on the
-mesh, the ProxyJump leg is dead. Fix relay1 first.
-
-### drift @ 9def97e (2026-05-09)
-
-```
-have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
-want: /nix/store/rsb8r0kg…-nixos-system-nv1-26.05.20260505.549bd84   (was qjdsdd97)
-```
-
-Catch-up entry — drift @ {dde1472, 1cb22af, a73c579} appended to
-`ops-deploy-web2.md` only; nv1 want progression
-qjdsdd97 → … → h31nl66w (a73c579) → rsb8r0kg (9def97e). Dry-build
-565/1343/5.0G (was 563/1286/4.9G @ 23975b3). Closure-affecting since
-23975b3, nv1-side beyond the all-host bumps already tabulated in
-`ops-deploy-web2.md` (4b5ca4e nixpkgs, ecdc26f+a1a5da4 internal bumps,
-ffb9aeb kin llm-adapter, bfbaf59 srvos, eceb5e4 nixos-hardware):
-
-| commit | what |
-|---|---|
-| e4db263 | nv1: drop stale VFIO comments (machines/nv1) |
-| a8d3abd | ask-cuda --structured-think (re-checked: not in host closure, NEUTRAL) |
-| 74d901a | llm-router: model-keyed backend lifecycle (spawn/idle-reap/LRU) |
-| a3f8a1c | afk-bench: opportunistic local-inference bench drain on idle nv1 |
-| a1a615b | home-manager c55c498c→fdb2ccba (nv1-only at closure level) |
-| 318976e | nix-index-database b8eb7ace→dd2d0e3f (terminal→desktop→nv1) |
-
-New runtime checks: (1) `afk-bench` user timer present (`systemctl
---user list-timers | grep afk-bench`); fires on AFK window, drains
-`infer-queue`; (2) `ask-local --serve` accepts `--model`/`--port`
-flags; llm-router spawn/idle-reap/LRU lifecycle observable via
-`/v1/models`. Other runtime checks carried from 23975b3 entry above.
-
-> META: drift append-log now has **6** entries (>3 trigger). Compact
-> e960caf..9def97e into the table on next META round.
-
-### drift @ cce49ee (2026-05-09, r10 follow-up)
-
-```
-have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
-want: /nix/store/53s3xn5k…-nixos-system-nv1-26.05.20260505.549bd84   (was rsb8r0kg)
-```
-
-Two closure deltas since 9def97e: ad3ea1a (internal kin/iets/nix-skills/
-llm-agents bump, rsb8r0kg→ckjj38wc) and a2759f9 (`builders.hcloud-07`
-declared in kin.nix — `nix.buildMachines` entry lands on nv1 +
-`gen/_policy/_shared/export.cedar` `Service::"builders"` permit,
-ckjj38wc→53s3xn5k). 0837c94 limine-hotfix removal and 03bb206 nixvim
-bump verified NEUTRAL (rsb8r0kg held through both). Dry-build PASS.
-
-New runtime check post-deploy: (1) `nix store info --store
-ssh-ng://hcloud-07` resolves and reports remote store; (2) `nix build
---max-jobs 0 <expr>` dispatches to hcloud-07 (see
-`ops-builders-key-drop.md` — key drop is a prerequisite, do that
-first). **Reachability still blocked on relay1 recovery.**
-
-> META: drift append-log now has **7** entries in this file (>3
-> trigger). Compact e960caf..cce49ee into the table on next META round.
-
-### drift @ 80a9212 (2026-05-09, r13)
-
-```
-have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
-want: /nix/store/isgj6yg9…-nixos-system-nv1-26.05.20260505.549bd84   (was 53s3xn5k)
-```
-
-One closure-affecting commit since cce49ee (d62288d): `5a218c6`
-(merged `2f23dfe`, r11 implementer) —
-`nix.settings.system-features = lib.mkForce [ "kvm" "uid-range"
-"recursive-nix" ]` on nv1, dropping big-parallel/nixos-test/benchmark
-so derivations carrying those `requiredSystemFeatures` dispatch to
-hcloud-07 (`a2759f9`'s `nix.buildMachines` entry). Lands in
-`/etc/nix/nix.conf` → moves the toplevel. `mkForce` because the nixpkgs
-config/nix.nix module and the srvos nix-experimental mixin both set
-system-features at default priority. **nv1-only** — relay1
-`dxirzajg…549bd84` and web2 `msim209r…549bd84` eval-identical at
-cce49ee and 80a9212.
-
-Dry-build PASS: nv1 555 drvs / 1331 fetch / 4.8 GiB (was 563/1286/4.9G
-@ cce49ee). New runtime check post-deploy: (1) `nix config show | grep
-system-features` shows exactly `kvm uid-range recursive-nix` (not
-big-parallel/nixos-test/benchmark); (2) `nix build --dry-run` of a
-big-parallel drv (e.g. a kernel rebuild) reports it `will be built` on
-hcloud-07, not locally — needs `ops-builders-key-drop.md` done first;
-(3) confirm KVM/podman still work
-(`recursive-nix`/`kvm`/`uid-range` retained). **Reachability still
-blocked on relay1 recovery.**
-
-> META: drift append-log now has **8** entries in this file (>3
-> trigger). Compact e960caf..80a9212 into the table on next META round.
+<!-- compacted @ META r15 (2026-05-09): folded e960caf+671f35b+e3c1cea+8231b3d+23975b3+9def97e+cce49ee+80a9212 into table+checks above. want progression 77dfr1xn→1mdzqizi→n5smybmw→zi5as60q→8l90l7hx→qjdsdd97→rsb8r0kg→53s3xn5k→isgj6yg9→mbw1f3pr. nv1 not-on-mesh entire window (relay1 down Apr-26→). niri/vfio/deepfilter marked MOOT in checks. -->
 
 ### drift @ 6753fd8 (2026-05-09, r15)
 
@@ -442,6 +273,3 @@ emits the sem-grep-mined hint list; (2) `sem-grep "test query"` shows
 the BM25 leg in `--explain` output (FTS5 table populated). Layered on
 top of the system-features and builders.hcloud-07 checks above.
 **Reachability still blocked on relay1 recovery.**
-
-> META: drift append-log now has **9** entries in this file (>3
-> trigger). Compact e960caf..6753fd8 into the table on next META round.
