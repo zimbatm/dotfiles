@@ -95,6 +95,16 @@
 
   nix.settings.trusted-users = [ "zimbatm" ];
 
+  # Build policy: nv1 builds small, dispatches heavy. Strip big-parallel /
+  # nixos-test / benchmark from local system-features so derivations carrying
+  # requiredSystemFeatures for those are forced onto the hcloud-07 remote
+  # builder (kin.nix builders.hcloud-07 advertises them). Keep kvm/uid-range/
+  # recursive-nix — hardware/daemon capabilities, not load classes. mkForce
+  # because the nixpkgs config/nix.nix module and the srvos nix-experimental
+  # mixin both set system-features at default priority — a plain assignment
+  # would merge with theirs, not replace.
+  nix.settings.system-features = lib.mkForce [ "kvm" "uid-range" "recursive-nix" ];
+
   # sudo/login/unlock via YubiKey touch (FIDO2). Enroll: pamu2fcfg > ~/.config/Yubico/u2f_keys
   security.pam.u2f = {
     enable = true;
