@@ -26,7 +26,7 @@ pkgs.writeShellApplication {
     # Same [section].prompt TOML shape as ptt-dictate's intent table so
     # the two grow together. Falsifies: Phi-3-mini on the Arc iGPU is
     # fast enough (<2s/paragraph) for *interactive* text edits — if not,
-    # route through llm-router or revisit the vfio-reserved 4060.
+    # route through llm-router or revisit the 4060 dGPU (PRIME offload).
     CFG="''${XDG_CONFIG_HOME:-$HOME/.config}/sel-act/prompts.toml"
 
     src=--primary replace=0 verb=""
