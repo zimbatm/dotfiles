@@ -9,7 +9,6 @@
   imports = [
     ./hardware-configuration.nix
     # NovaCustom V5xTNC: Intel Meteor Lake-H + NVIDIA RTX 4060 Max-Q
-    # GPU: Intel Arc for display, NVIDIA reserved for VFIO passthrough
     inputs.nixos-hardware.nixosModules.common-cpu-intel
     inputs.nixos-hardware.nixosModules.common-pc-laptop
     inputs.nixos-hardware.nixosModules.common-pc-ssd
