@@ -182,3 +182,53 @@ Sun May-10 02:26 — same fire as 23975b3 entry, no NEW data. Dry-build
 3/3: web2 175/67/291.9M, relay1 87/17/145.5M, nv1 591/1387/5.0G.
 Reconcile unchanged: `kin deploy web2`, then recover relay1
 (`ops-relay1-recover.md`).
+
+### drift @ 1cb22af (2026-05-09, third drift round same day)
+
+**carries 6→9.** r4 landed 3 closure-affecting commits for web2 on top
+of dde1472. Have unchanged c27fxv31 (gen-25, Apr-24, `26.05.20260418.b121…`)
+— uptime 31d7h, still degraded (acme + restic-backups-gotosocial).
+Want 4xr21l3q→7562f0v1 (`26.05.20260505.549bd84` unchanged label,
+closure moves under it). Reconcile unchanged: `kin deploy web2`, then
+recover relay1 (`ops-relay1-recover.md`).
+
+> Correction to prev entry: dde1472 want is `4xr21l3q…549bd84`
+> (re-evaled fresh `git+file://?rev=dde1472`). Prev recorded
+> `cqs9rgp0…` which does not reproduce — likely transcription error;
+> 23975b3's `vnpjyvr1…0726a0e` does reproduce, carries-6 count holds.
+
+Bisect 54b44f6..1cb22af, first-parent eval at each merge boundary:
+
+| commit | toplevel | what | scope |
+|---|---|---|---|
+| 1b86152 | 4xr21l3q→8l4ay4513 | bump kin 0bfa6d35→303dcb2e (ecdc26f, flake.lock) | all |
+| a1a5da4 | 8l4ay4513→l25z8f6x | bump internal kin/iets/nix-skills/llm-agents (flake.lock + gen regen) | all |
+| 14e353b | l25z8f6x→7562f0v1 | adopt `services.llm-adapter` builtin, drop local module (ffb9aeb: kin.nix, gen/_policy/_shared/export.cedar, gen/manifest.lock, flake.nix -1 module) | all |
+
+NEUTRAL for web2: 40d6053 (e4db263 nv1 vfio-comment drop —
+machines/nv1 + packages/sel-act, not in web2 closure; eval at 1b86152
+and a1a5da4 brackets the only delta to a1a5da4); 5101bc3 (backlog only);
+2dad55f (eceb5e4 nixos-hardware bump — eval-identical 7562f0v1 at
+14e353b and 2dad55f, servers do not import nixos-hardware); 1cb22af
+(meta backlog only).
+
+```
+web2:   have c27fxv31… (gen-25, Apr-24)  want 7562f0v1…549bd84   carries 9   degraded   31d7h
+relay1: have ???      (Ubuntu, not NixOS)                        want 8gk4aiq0…549bd84
+nv1:    not-on-mesh                                              want h31nl66w…549bd84
+```
+
+Failed units on web2 now **2** (was 1):
+`acme-order-renew-gts.zimbatm.com.service` (chronic, see
+`ops-web2-acme-renew.md`) + **NEW** `restic-backups-gotosocial.service`
+— first time restic appears in `kin status` failed column. Cannot pull
+journal (root SSH denied to drift); add to the runtime-checks table
+above when re-probing post-deploy.
+
+Dry-build 3/3: web2 168/68/291.9M (was 175/67), relay1 80/18/145.5M
+(was 87/17), nv1 589/1387/5.0G (was 591/1387). All gates pass.
+
+Externals stale ≥7d (filed `bump-srvos.md`, oldest @ 15.5d): srvos
+15.5d, nix-index-database 13.4d, home-manager 13.0d, nixvim 13.0d —
+all upstream MOVED (ls-remote verified). nixpkgs 4.5d, nixos-hardware
+2.3d both fresh post-r4.
