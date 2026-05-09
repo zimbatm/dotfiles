@@ -48,4 +48,12 @@ gets a model response (not 401/404).
 
 ## blockers
 
-kin input bump to ≥ 3012f7da.
+~~kin input bump to ≥ 3012f7da.~~ **Cleared 2026-05-09** — grind/bump-kin
+merged at 1b86152 moved the pin to `303dcb2e`, which has 3012f7da as an
+ancestor. `services.llm-adapter` builtin should now be available.
+
+Remaining: secret re-key (`kin set llm-adapter/api-key` OR
+`git mv gen/llm-nvidia-adapter/api-key gen/llm-adapter/api-key` if the
+recipient set matches — try the mv first; only escalate to needs-human
+if `kin gen` rejects it). This is a `kin.nix` change — one-per-round
+spine budget applies.
