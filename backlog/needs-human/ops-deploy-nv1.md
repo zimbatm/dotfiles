@@ -294,3 +294,41 @@ notes + appends reads.jsonl; (2) `ptt-dictate --backend=cpu` invokes
 transcribe-cpu (sherpa-onnx parakeet model) and types result; (3)
 `ptt-dictate --backend=auto` picks cpu when NPU unavailable; (4)
 `bench-dictate.sh` runs both lanes and reports latency.
+
+### drift @ 23975b3 (2026-05-09)
+
+```
+have: ???  (not-on-mesh — 17th unprobeable round; ProxyJump root@95.216.188.155 is
+            DOWN: relay1 not running NixOS, see ops-relay1-recover.md)
+want: /nix/store/qjdsdd97…-nixos-system-nv1-26.05.20260422.0726a0e   (was 8l90l7hx)
+```
+
+13-day drift gap (no `drift @` round Apr-26 → May-9). Dry-build:
+563 drvs / 1286 fetch / 4.9 GiB (was 458/1202/3.7G — UP ~84 fetch /
+1.2G; new CUDA-13 + parakeet model paths). 8 closure-affecting commits
+since 8l90l7hx, all nv1-only:
+
+| commit | what |
+|---|---|
+| 7bdd14f | drop CROPS vfio passthrough, enable NVIDIA driver for CUDA |
+| 052a455 | nv1: disable home.deepfilter (pipewire 1.6 schema bug) |
+| 7790634 | NEW packages/ask-cuda: CUDA-13 llama.cpp wrapper for Qwen3.6-35B-A3B |
+| aa07e81 | fix deepfilter pipewire 1.6 plugin lookup |
+| 35b6f06 | llm-router: support NVIDIA upstream |
+| 2313ae2 | NEW services/llm-nvidia-adapter: NVIDIA NIM → LiteLLM Anthropic shim (pendingOn key) |
+| 3a81166 | remove modules/home/desktop/deepfilter.nix |
+| 23975b3 | install distro input; drop modules/nixos/niri.nix; nv1 config rework |
+
+Plus fleet-wide 2844219 (limine 11.4.1) + gen/_policy/manifest.lock
+churn from 2313ae2.
+
+New runtime checks: (1) `nvidia-smi` reports RTX 4060 with CUDA-13;
+(2) `ask-cuda` loads Qwen3.6-35B-A3B and answers a prompt; (3)
+`llm-nvidia-adapter` unit inert until
+`kin set llm-nvidia-adapter/api-key/_shared/key` (see
+ops-verify-nvidia-nim-adapter.md); (4) deepfilter absent from
+PipeWire graph (`pw-cli ls Node | grep -i deepfilter` → nothing); (5)
+niri session removed from GDM.
+
+**Reachability blocked on relay1 recovery** — even if nv1 is on the
+mesh, the ProxyJump leg is dead. Fix relay1 first.

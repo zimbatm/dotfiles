@@ -118,3 +118,46 @@ gen-16 chroot bootloader reinstall. web2 boot rolled back to gen-25
 before reboot. **Both back on Apr-24 gens, carries-2 unchanged.**
 relay1 uptime reset; web2 18d13h unchanged. **Deploy BLOCKED on
 bug-limine-11.4.0-bios-boot.**
+
+### drift @ 23975b3 (2026-05-09)
+
+**DRIFTED, deploy UNBLOCKED for web2; relay1 DOWN (non-NixOS).** First
+drift round in 13 days. Limine hotfix (`modules/nixos/limine-hotfix.nix`
+→ 11.4.1) landed at 2844219 — the BIOS-brick blocker is cleared. web2
+declared moved 3 more steps; **carries 2→5**. relay1 is no longer
+running NixOS (Hetzner rescue / reinstalled — see
+`ops-relay1-recover.md`). Reconcile: `kin deploy web2`, then recover
+relay1 (`ops-relay1-recover.md`) before `kin deploy relay1`.
+
+```
+web2:   have c27fxv31… (gen-25, Apr-24)  want vnpjyvr1…   carries 5   degraded (acme)  31d6h
+relay1: have ???      (Ubuntu OpenSSH 8.9p1, raw host key — not NixOS)   want psah9s86…
+```
+
+Bisect 872a798..23975b3 for web2, 3 new closure-affecting commits (on
+top of f5bd72e + 94dd7b4 carried from e3c1cea):
+
+| commit | toplevel | what | scope |
+|---|---|---|---|
+| 1f0c8c4 | y6amiis8→zqd3917b | `services.ietsd` stage-1 coexist on web2 (alt-socket, takeover=false) | web2 |
+| 2844219 | zqd3917b→1b1z88kr | limine pinned 11.4.1 (`modules/nixos/limine-hotfix.nix`) | relay1 + web2 |
+| 2313ae2 | 1b1z88kr→vnpjyvr1 | NVIDIA NIM adapter (nv1 service) — **fleet-wide** via `gen/_policy/_shared/export.cedar` + `gen/manifest.lock` | all |
+
+NEUTRAL for web2 (eval-identical at neighbours): 7bdd14f, 052a455,
+7790634 (vfio/deepfilter/ask-cuda — nv1-only); aa07e81, 35b6f06,
+e9785c7 (deepfilter-pw1.6 / llm-router — nv1-only, on parallel branches
+that merged after 2844219); 3a81166, 3541c2a, 23975b3 (deepfilter
+removal / gsnap heredoc / distro input — verified vnpjyvr1 unchanged).
+
+Dry-build web2 161/57/149.9M (was 143/75/165.2M @ e3c1cea), relay1
+69/4/2.7M, nv1 563/1286/4.9G — **3/3 dry-build pass**.
+
+acme-order-renew-gts.zimbatm.com fired Sat 2026-05-09 02:26:06,
+`ExecMainStatus=1` — **still failing, 13 days running**. Daily fire,
+daily fail, zero network bytes. Cert pressure increasing — see
+`ops-web2-acme-renew.md`. The `kin deploy web2` (gen with limine fix +
+ietsd) is the next thing to try since the root cause was never journaled.
+
+Externals stale (filed `bump-nixpkgs.md`): nixpkgs 16d, srvos 15d,
+nixos-hardware 15d, nix-index-database 13d, home-manager 12d, nixvim
+12d — all upstream MOVED (ls-remote verified).
