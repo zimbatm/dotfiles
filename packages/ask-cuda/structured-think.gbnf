@@ -1,0 +1,24 @@
+# structured-think.gbnf — opt-in scratchpad shape for ask-cuda (Qwen3.6 dGPU).
+#
+# Adapted from the "Structured CoT" trick (andthattoo.dev/blog/structured_cot):
+# constrain ONLY the model's <think> block to three short labelled lines, leave
+# the answer/code channel unconstrained. This is *shape* control, not a hard
+# token budget — `[^\n]+` is unbounded per line, matching what the blog actually
+# benchmarked. If the bench shows lines blowing up, swap to `[^\n]{1,200}`.
+#
+# Caveats (verify on nv1, see bench-structured-cot.sh):
+#   * Qwen3.6 chat templates may pre-insert `<think>\n` at the assistant turn.
+#     If the grammar then fails immediately (cannot re-sample `<`), drop the
+#     leading `"<think>\n"` literal from the `think` rule.
+#   * Grammar matching is over the UTF-8 byte/codepoint stream, not token IDs;
+#     `<think>` being a special token in the Qwen vocab does not change matching
+#     but can affect which token IDs satisfy the literal. This is exactly what
+#     the bench's malformed-output column is for.
+#   * `answer ::= .+` is deliberately maximally permissive (`.` is GBNF
+#     "any single character", incl. newline + Unicode) so code with non-ASCII
+#     comments/identifiers is never blocked.
+
+root   ::= think answer
+think  ::= "<think>\n" "GOAL: " line "APPROACH: " line "EDGE: " line "</think>\n\n"
+line   ::= [^\n]+ "\n"
+answer ::= .+
