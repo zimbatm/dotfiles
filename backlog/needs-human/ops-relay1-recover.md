@@ -45,9 +45,14 @@ between then and 2026-05-09 it went down.
    to reinstall the bootloader from gen-16, reboot. **This still leaves
    limine 11.4.0 on disk** — the host will brick again on next reboot
    unless step 3 follows immediately.
-3. Once SSH-reachable, `kin deploy relay1` from origin/main (carries
-   the limine-hotfix → 11.4.1, no longer brickable on BIOS boot).
-   Confirm `gen/identity/ca/_shared/known_hosts` SSH path survives per
+3. Once SSH-reachable, `kin deploy relay1` from origin/main. **Note:**
+   `modules/nixos/limine-hotfix.nix` (the 11.4.1 pin) was dropped at
+   `0837c94` because nixpkgs now ships limine 12.1.0 — origin/main no
+   longer carries the local hotfix; it relies on the upstream version.
+   Verify the limine version in the dry-build output is ≥12.1.0 before
+   deploying (a nixpkgs pin/regression to 11.4.x would re-introduce the
+   limlz BIOS decompressor brick). Confirm
+   `gen/identity/ca/_shared/known_hosts` SSH path survives per
    `../kin/docs/howto/lockout-recovery.md` first.
 4. If the disk is gone / reinstalled: full `kin install relay1`
    (nixos-anywhere or equivalent).
@@ -92,3 +97,12 @@ connection-timeout. No change from a73c579. web2 (same Hetzner
 Helsinki, 89.167.46.118) up 31d8h. want unchanged `8gk4aiq0…549bd84`
 (re-evaled @ 9def97e — none of the 6 commits since a73c579 moved
 relay1's closure). Dry-build 80/18/145.5M unchanged.
+
+### meta @ 03bb206 (2026-05-09 r9)
+
+Still unreachable — `kin status relay1` reports unreachable; raw
+TCP/22 banner probe returns nothing. No state change. **Recovery step 3
+updated above:** `limine-hotfix.nix` was removed at `0837c94`
+(simplify-drop-limine-hotfix) because nixpkgs now ships limine 12.1.0.
+`want` for relay1 has moved (closure now includes 12.1.0 bootloader, not
+the 11.4.1 pin). Re-eval before any recovery deploy.
