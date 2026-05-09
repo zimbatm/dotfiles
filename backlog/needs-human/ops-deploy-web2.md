@@ -308,3 +308,54 @@ Externals: only nixvim still stale at 13d (`bump-nixvim.md` already
 filed @ a73c579, still actionable). home-manager 1d / nix-index-database
 1d (both consumed @ r8). nixpkgs 4d, srvos 2d, nixos-hardware 2d fresh.
 No new bump-* filed.
+
+### drift @ cce49ee (2026-05-09, r10 follow-up)
+
+**carries 10→13.** Three closure-affecting commits landed since 9def97e
+on the web2 path. Have unchanged c27fxv31 (gen-25, Apr-24,
+`26.05.20260418.b121…`) — uptime 31d9h, still degraded (acme + restic).
+Want 5x19wq23→msim209r (`26.05.20260505.549bd84` label unchanged,
+closure moves under it). Reconcile unchanged: `kin deploy web2`, then
+recover relay1 (`ops-relay1-recover.md`).
+
+Bisect 9def97e..cce49ee, first-parent eval at each merge boundary:
+
+| commit | toplevel | what | scope |
+|---|---|---|---|
+| 0837c94 | 5x19wq23→fyvwhww1 | drop limine-hotfix (7dadd8c: rm `modules/nixos/limine-hotfix.nix`, web2/relay1 drop import; pkgs.limine 11.4.1-pin → 12.1.0) | relay1 + web2 |
+| ad3ea1a | fyvwhww1→5v010f83 | bump internal kin/iets/nix-skills/llm-agents (flake.lock; iets in web2 closure via gotosocial+ietsd, NOT in relay1 — relay1 unchanged at this rev) | nv1 + web2 |
+| a2759f9 | 5v010f83→msim209r | declare `builders.hcloud-07` (9bdf0a7: kin.nix, `gen/_policy/_shared/export.cedar` adds `Service::"builders"` permit, `gen/manifest.lock`) | all |
+
+NEUTRAL for web2: 03bb206 (80ed9fb nixvim d404af65→7986a276 —
+flake.lock only; `packages/nvim` is not in any host toplevel,
+eval-identical fyvwhww1 at 0837c94 and 03bb206); 68b781a, 07c2219,
+1ec97e3, 5f2e510, cce49ee (backlog only).
+
+```
+web2:   have c27fxv31… (gen-25, Apr-24)  want msim209r…549bd84   carries 13  degraded   31d9h
+relay1: FULLY DOWN (ICMP 100% loss, TCP/22 timeout)              want dxirzajg…549bd84
+nv1:    not-on-mesh                                              want 53s3xn5k…549bd84
+```
+
+Failed units on web2 still **2**:
+`acme-order-renew-gts.zimbatm.com.service` last fire Sat May-9 02:26:06
+ExecMainStatus=1 (same fire as 9def97e entry, no new data, next Sun
+May-10 02:26 — see `ops-web2-acme-renew.md`);
+`restic-backups-gotosocial.service` last fire Sat May-9 18:00:08
+Result=exit-code, ExecStartPre status=1 (one more hourly cycle since
+9def97e's 17:00:02; pre-start ran 18:00:06→18:00:08, 2s — still
+SFTP/repo-init failure point), next 19:00. Booted-system still
+`zmk2wdqzx…20260405` ≠ current `c27fxv31…20260418` — no reboot, gen-25
+was switch-only.
+
+Dry-build 3/3 PASS (exit 0). Externals all <7d (nixpkgs 4d,
+home-manager 1d, srvos 2d, nixos-hardware 2d, nix-index-database 1d,
+nixvim 4d post-r9 bump) — no new bump-* filed.
+
+**a2759f9 surprise:** `gen/_policy/_shared/export.cedar` is shared
+fleet policy; the new `Service::"builders"` permit moved every host's
+toplevel even though `nix.buildMachines` only lands on nv1. Carries
+count for web2/relay1 ticks up on a builder declared for a different
+host — expected under shared-policy regen, but worth knowing the deploy
+scope when reading the meta DEPLOY REMINDER (which only said "kin
+deploy nv1").

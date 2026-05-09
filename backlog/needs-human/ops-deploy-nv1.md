@@ -365,3 +365,26 @@ flags; llm-router spawn/idle-reap/LRU lifecycle observable via
 
 > META: drift append-log now has **6** entries (>3 trigger). Compact
 > e960caf..9def97e into the table on next META round.
+
+### drift @ cce49ee (2026-05-09, r10 follow-up)
+
+```
+have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
+want: /nix/store/53s3xn5k…-nixos-system-nv1-26.05.20260505.549bd84   (was rsb8r0kg)
+```
+
+Two closure deltas since 9def97e: ad3ea1a (internal kin/iets/nix-skills/
+llm-agents bump, rsb8r0kg→ckjj38wc) and a2759f9 (`builders.hcloud-07`
+declared in kin.nix — `nix.buildMachines` entry lands on nv1 +
+`gen/_policy/_shared/export.cedar` `Service::"builders"` permit,
+ckjj38wc→53s3xn5k). 0837c94 limine-hotfix removal and 03bb206 nixvim
+bump verified NEUTRAL (rsb8r0kg held through both). Dry-build PASS.
+
+New runtime check post-deploy: (1) `nix store info --store
+ssh-ng://hcloud-07` resolves and reports remote store; (2) `nix build
+--max-jobs 0 <expr>` dispatches to hcloud-07 (see
+`ops-builders-key-drop.md` — key drop is a prerequisite, do that
+first). **Reachability still blocked on relay1 recovery.**
+
+> META: drift append-log now has **7** entries in this file (>3
+> trigger). Compact e960caf..cce49ee into the table on next META round.

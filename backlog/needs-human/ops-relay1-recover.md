@@ -106,3 +106,16 @@ updated above:** `limine-hotfix.nix` was removed at `0837c94`
 (simplify-drop-limine-hotfix) because nixpkgs now ships limine 12.1.0.
 `want` for relay1 has moved (closure now includes 12.1.0 bootloader, not
 the 11.4.1 pin). Re-eval before any recovery deploy.
+
+### drift @ cce49ee (2026-05-09, r10 follow-up)
+
+Still **FULLY DOWN** — re-probed: ICMP 2/2 packets lost (100%), TCP/22
+connection-timeout. No state change since 9def97e. web2 (same Hetzner
+Helsinki) up 31d9h, so still not a region-wide outage. want moved
+`8gk4aiq0` → `dxirzajg…549bd84` — two closure deltas since 9def97e:
+0837c94 (limine-hotfix removal — bootloader 11.4.1-pin → 12.1.0, the
+exact thing recovery step 3 above warns about) and a2759f9 (shared
+`Service::"builders"` policy regen). ad3ea1a internal bump and 03bb206
+nixvim bump verified NEUTRAL for relay1 (eval-identical l7vp1889 at
+0837c94 → 03bb206 → ad3ea1a). Dry-build PASS. **Re-eval before any
+recovery deploy** — bootloader binary moves under this want.
