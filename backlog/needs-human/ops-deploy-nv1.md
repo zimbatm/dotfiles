@@ -388,3 +388,35 @@ first). **Reachability still blocked on relay1 recovery.**
 
 > META: drift append-log now has **7** entries in this file (>3
 > trigger). Compact e960caf..cce49ee into the table on next META round.
+
+### drift @ 80a9212 (2026-05-09, r13)
+
+```
+have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
+want: /nix/store/isgj6yg9…-nixos-system-nv1-26.05.20260505.549bd84   (was 53s3xn5k)
+```
+
+One closure-affecting commit since cce49ee (d62288d): `5a218c6`
+(merged `2f23dfe`, r11 implementer) —
+`nix.settings.system-features = lib.mkForce [ "kvm" "uid-range"
+"recursive-nix" ]` on nv1, dropping big-parallel/nixos-test/benchmark
+so derivations carrying those `requiredSystemFeatures` dispatch to
+hcloud-07 (`a2759f9`'s `nix.buildMachines` entry). Lands in
+`/etc/nix/nix.conf` → moves the toplevel. `mkForce` because the nixpkgs
+config/nix.nix module and the srvos nix-experimental mixin both set
+system-features at default priority. **nv1-only** — relay1
+`dxirzajg…549bd84` and web2 `msim209r…549bd84` eval-identical at
+cce49ee and 80a9212.
+
+Dry-build PASS: nv1 555 drvs / 1331 fetch / 4.8 GiB (was 563/1286/4.9G
+@ cce49ee). New runtime check post-deploy: (1) `nix config show | grep
+system-features` shows exactly `kvm uid-range recursive-nix` (not
+big-parallel/nixos-test/benchmark); (2) `nix build --dry-run` of a
+big-parallel drv (e.g. a kernel rebuild) reports it `will be built` on
+hcloud-07, not locally — needs `ops-builders-key-drop.md` done first;
+(3) confirm KVM/podman still work
+(`recursive-nix`/`kvm`/`uid-range` retained). **Reachability still
+blocked on relay1 recovery.**
+
+> META: drift append-log now has **8** entries in this file (>3
+> trigger). Compact e960caf..80a9212 into the table on next META round.

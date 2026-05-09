@@ -119,3 +119,13 @@ exact thing recovery step 3 above warns about) and a2759f9 (shared
 nixvim bump verified NEUTRAL for relay1 (eval-identical l7vp1889 at
 0837c94 → 03bb206 → ad3ea1a). Dry-build PASS. **Re-eval before any
 recovery deploy** — bootloader binary moves under this want.
+
+### drift @ 80a9212 (2026-05-09, r13)
+
+Still **FULLY DOWN** — re-probed: ICMP 2/2 packets lost (100%), TCP/22
+connection-timeout. No state change since cce49ee. web2 (same Hetzner
+Helsinki) up 31d10h — still not region-wide. want **unchanged**
+`dxirzajg…549bd84` — only closure delta since cce49ee is `5a218c6`
+(nv1 `system-features` narrow), nv1-only, relay1 eval-identical at
+cce49ee and 80a9212. Dry-build PASS (56 drvs / 4 fetch / 0.8 KiB).
+Recovery steps and limine-12.1.0 caution above unchanged.
