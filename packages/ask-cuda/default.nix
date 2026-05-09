@@ -35,8 +35,15 @@ pkgs.writeShellApplication {
     # One-shot LLM on the NVIDIA dGPU (CUDA 13). Defaults to Qwen3.6-35B-A3B
     # UD-IQ3_XXS (Unsloth) — MoE 35B/3B-active fits ~13 GB weights + ~1.3 GB
     # KV at 131k q8.
-    #   ask-cuda "<prompt>"        → llama-cli completion to stdout
-    #   ask-cuda --serve           → llama-server :8089 (OpenAI-compat)
+    #   ask-cuda "<prompt>"               → llama-cli completion to stdout
+    #   ask-cuda --structured-think "<p>"  → same, but constrain the <think>
+    #                                        scratchpad to GOAL:/APPROACH:/EDGE:
+    #                                        lines via a GBNF grammar (answer
+    #                                        channel stays free-form). Opt-in
+    #                                        anti-overthink experiment; bench it
+    #                                        with bench-structured-cot.sh on nv1
+    #                                        before trusting it.
+    #   ask-cuda --serve                   → llama-server :8089 (OpenAI-compat)
     #
     # Env knobs (all optional):
     #   ASK_CUDA_MODEL  override .gguf path (default: Qwen3.6-35B-A3B UD-IQ3_XXS)
@@ -45,6 +52,17 @@ pkgs.writeShellApplication {
     #   ASK_CUDA_CTX    context size (default 8192)
     #   ASK_CUDA_KV     KV cache type (default f16; q8_0 halves KV memory)
     #   ASK_CUDA_N      max tokens to generate (default 256; -1 = until ctx fills)
+    #   ASK_CUDA_STRUCTURED_COT  set to 1 to enable the structured-think grammar
+    #                   without the flag. Override the grammar file with
+    #                   ASK_CUDA_GBNF=<path> (default: bundled structured-think.gbnf).
+    #
+    # Structured CoT vs --serve: llama-server rejects OpenAI-style `tools`
+    # combined with a custom `grammar` (HTTP 400, llama.cpp discussion #22408),
+    # and a server-level --grammar-file would silently constrain *every* client
+    # response. So --serve mode does NOT pass the grammar — it warns on stderr
+    # if you set ASK_CUDA_STRUCTURED_COT and falls back to unconstrained.
+    # Clients that want structured CoT over the API must send `grammar` per
+    # request and must not also send `tools`.
     #
     # Tuning notes for nv1 (RTX 4060 Mobile, 8 GB) — Qwen3.6-35B-A3B
     # UD-IQ3_XXS, llama.cpp b8770, KV f16, fa on, ctx 4k bench:
@@ -69,6 +87,8 @@ pkgs.writeShellApplication {
     CTX="''${ASK_CUDA_CTX:-8192}"
     KV="''${ASK_CUDA_KV:-f16}"
     N="''${ASK_CUDA_N:-256}"
+    STRUCTURED_COT="''${ASK_CUDA_STRUCTURED_COT:-0}"
+    GBNF="''${ASK_CUDA_GBNF:-${./structured-think.gbnf}}"
 
     common=(
       -m "$MODEL"
@@ -81,7 +101,23 @@ pkgs.writeShellApplication {
     )
 
     if [[ "''${1:-}" == "--serve" ]]; then
+      if [[ "$STRUCTURED_COT" != 0 ]]; then
+        echo "ask-cuda: --serve ignores ASK_CUDA_STRUCTURED_COT (server-level grammar would" >&2
+        echo "          constrain every client and breaks OpenAI 'tools' — llama.cpp #22408)." >&2
+        echo "          Send a per-request 'grammar' field from the client instead." >&2
+      fi
       exec llama-server "''${common[@]}" -np 1 --host 127.0.0.1 --port 8089
+    fi
+
+    # --structured-think mirrors ask-local's --grammar plumbing: append
+    # --grammar-file to the llama-cli call. Flag and env knob are equivalent.
+    extra=()
+    if [[ "''${1:-}" == "--structured-think" ]]; then
+      STRUCTURED_COT=1
+      shift
+    fi
+    if [[ "$STRUCTURED_COT" != 0 ]]; then
+      extra+=(--grammar-file "$GBNF")
     fi
 
     # llama.cpp b8770 reworked llama-cli into a chat-only tool: -no-cnv is a
@@ -90,6 +126,6 @@ pkgs.writeShellApplication {
     # forever once -p is consumed, spewing "\n> " indefinitely — the observed
     # runaway. -st (--single-turn) breaks after the first response; -n caps
     # generation as before.
-    exec llama-cli "''${common[@]}" -st -n "$N" -p "$*"
+    exec llama-cli "''${common[@]}" "''${extra[@]}" -st -n "$N" -p "$*"
   '';
 }

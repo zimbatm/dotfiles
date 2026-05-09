@@ -1,5 +1,40 @@
 # adopt: structured CoT grammar for local coding latency
 
+## Status
+
+Prototype landed — opt-in only, not measured yet. **Remaining work needs nv1
+hardware (~13 GB model on the dGPU). DO NOT run from an agent.**
+
+What landed (`grind/adopt-structured-cot-grammar`):
+
+- `packages/ask-cuda/structured-think.gbnf` — GBNF that constrains only the
+  `<think>` scratchpad to `GOAL:`/`APPROACH:`/`EDGE:` lines; answer channel
+  stays maximally permissive (`.+`). Validated against the llama.cpp parser
+  source (`.` → `LLAMA_GRETYPE_CHAR_ANY`, `+` → `handle_repetitions(1,-1)`).
+- `packages/ask-cuda/default.nix` — `ask-cuda --structured-think "<p>"` and
+  `ASK_CUDA_STRUCTURED_COT=1` knobs append `--grammar-file` to the llama-cli
+  call. **`--serve` mode deliberately does NOT pass the grammar** (would
+  constrain every client + breaks OpenAI `tools`, llama.cpp #22408) — warns
+  on stderr if the env knob is set.
+- `packages/ask-cuda/bench-structured-cot.sh` — free-form vs grammar A/B over
+  6 fixed coding prompts. Reports wall clock, generated tokens, chars
+  before/after `</think>`, and a malformed flag; prints a PASS/WATCH/FAIL
+  verdict heuristic.
+
+### Remaining (human, on nv1, after `kin deploy nv1`)
+
+1. `packages/ask-cuda/bench-structured-cot.sh` (and re-run with
+   `ASK_CUDA_NCMOE=20` for the interactive-coding tuning).
+2. Inspect a couple of grammar-mode transcripts: did the verbosity actually go
+   away, or did it move into the answer/comments? The bench's `WATCH` verdict
+   catches the gross case but a human should eyeball one or two.
+3. If the Qwen3.6 chat template pre-inserts `<think>\n`, the grammar will fail
+   to start (cannot re-sample `<`). Drop the leading `"<think>\n"` literal from
+   the `think` rule and re-bench (the `.gbnf` header documents this).
+4. Decide: keep opt-in / make default for ask-cuda / mirror into ask-local
+   (smaller Phi-3 model — may or may not respect `<think>` framing). Update or
+   delete this file accordingly.
+
 ## What
 
 Try the "Structured CoT" inference-time trick from
