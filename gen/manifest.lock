@@ -9,7 +9,7 @@
       "ageHash": {},
       "depFilesHash": "9bebd4fa5ba52befb0f73e1dfbe939be1b32cc14140ff82bbb291179ca9ab9f4",
       "files": {},
-      "inputHash": "8b339a027fd966e816534d41bd87c743950382b7d9e9481adc9680be75cd1306"
+      "inputHash": "783956241a4f0c4be8c355f09bf1c4a4677216b34bba81d9db1aaff60dee00ad"
     },
     "attest/signing-key/_shared": {
       "ageHash": {
@@ -130,9 +130,9 @@
       "files": {},
       "inputHash": "183f768baac22493d0741f35f2d50f9016633804aa97993aad1dd93e235227aa"
     },
-    "llm-nvidia-adapter/api-key/_shared": {
+    "llm-adapter/api-key/_shared": {
       "ageHash": {
-        "key": "4019f799705406eedd324ee58e53b926fa84ddfd20b57498f3ded98341d8fc07"
+        "key": "506b03f8ffaf00c93c8a6821fc2a093f92526deebd2d94b8a6398962656f8905"
       },
       "files": {
         "key": "3f304b26e2df49261dc29683bd9498aa7432e178fd27393170e26d9674bc6e63"
