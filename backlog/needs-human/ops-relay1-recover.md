@@ -70,3 +70,17 @@ First detection. ICMP up, SSH banner Ubuntu 8.9p1, raw host key
 `AAAAC3NzaC1lZDI1NTE5AAAAIJD2h2Q299AeBB23AO/DuQcAiLpuuZ+kdTRpDDPfLXUW`
 (record this — if it changes again the box was touched). web2 (same
 fleet, same IP block) still up 31d → not a network-wide Hetzner event.
+
+### drift @ a73c579 (2026-05-09)
+
+**State change: now FULLY DOWN.** ICMP 100% loss (was 114ms RTT),
+TCP/22 connection-timeout (was Ubuntu OpenSSH 8.9p1 banner). The host
+that answered as Ubuntu rescue at the 23975b3 probe is now not
+reachable at all from this homespace. web2 (same Hetzner Helsinki) is
+up 31d8h, so not a region-wide outage — relay1 went from rescue-mode to
+powered-off / reinstalling / network-detached. Step 1 (Hetzner console
+existence check) is now load-bearing before anything else.
+
+want unchanged: `8gk4aiq0…549bd84` (eval @ a73c579, dry-build
+80/18/145.5M passes). nv1 still not-on-mesh transitively (proxy through
+this dead IP).

@@ -232,3 +232,42 @@ Externals stale ≥7d (filed `bump-srvos.md`, oldest @ 15.5d): srvos
 15.5d, nix-index-database 13.4d, home-manager 13.0d, nixvim 13.0d —
 all upstream MOVED (ls-remote verified). nixpkgs 4.5d, nixos-hardware
 2.3d both fresh post-r4.
+
+### drift @ a73c579 (2026-05-09)
+
+**carries 9→10.** One closure-affecting commit landed since 1cb22af:
+bfbaf59 (`flake.lock: bump srvos 7ae6f09 → 6f237ae`, merged ea03541) —
+srvos imported by both relay1 and web2 (`modules/nixos/common.nix`),
+moved both servers' want; nv1 also moved (srvos in shared closure).
+NEUTRAL: 6153e49, cb0b310, a73c579 (backlog only).
+
+```
+web2:   have c27fxv31… (gen-25, Apr-24)  want 5x19wq23…549bd84   carries 10  degraded   31d8h
+relay1: have ???      (Ubuntu, not NixOS)                        want 8gk4aiq0…549bd84
+nv1:    not-on-mesh                                              want h31nl66w…549bd84
+```
+
+Failed units on web2 still **2** (unchanged from 1cb22af): `acme-order-renew-gts.zimbatm.com.service`
+last fire Sat May-9 02:26:06 ExecMainStatus=1, IP 0B in/out, CPU 44ms — same
+early-exit signature, next Sun May-10 02:26 (see `ops-web2-acme-renew.md`);
+`restic-backups-gotosocial.service` last fire Sat May-9 16:00:08
+**ExecStartPre=1/FAILURE**, IP 8.4K in/out — pre-start is the failure
+point with network traffic, so the SFTP leg to rsync.net was reached
+(`gen.gotosocial-rsyncnet`, `modules/nixos/gotosocial.nix:23-29`):
+likely repo-not-init, host-key, or `kin set` cred mismatch; hourly
+timer next 17:00. Cannot pull journal (root SSH denied to drift).
+
+Booted-system check: `/run/booted-system` →
+`zmk2wdqzx19jpg8n6jwwhgjqmaqggs9d…26.05.20260405.68d8aa3` ≠
+`/run/current-system` → `c27fxv31…26.05.20260418.b121…` — gen-25 was
+switch-only (no reboot since gen ≤24). Carries-10 deploy is also a
+kernel/initrd skip; consider scheduling a reboot.
+
+Dry-build 3/3: web2 164/68/291.9M (was 168/68), relay1 80/18/145.5M
+(unchanged), nv1 587/1385/5.0G (was 589/1387). All gates pass.
+
+Externals stale ≥7d (3): nix-index-database 13.5d (b8eb7ace, upstream
+dd2d0e3f), home-manager 13.0d (c55c498c, upstream fdb2ccba), nixvim
+13.0d (d404af65, upstream 7986a276) — all upstream MOVED (ls-remote
+verified). srvos 2d nixos-hardware 2d nixpkgs 4d fresh post-r6. Filed
+`bump-nix-index-database.md`, `bump-home-manager.md`, `bump-nixvim.md`.
