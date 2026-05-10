@@ -48,15 +48,15 @@
     },
     "identity/machine/relay1": {
       "ageHash": {
-        "attest.key": "9138c8adbfaa7bdbf871e6c910c6b0dfd8aaf10d3d08656e661bc8aae18d7e85",
-        "ssh-host": "e994d5d1516cd8178648babdff95eacb942117b670bb6439d65513f304a8d568",
-        "tls.key": "a39e82790cdae25221e323103b7fc775f26e092cdf3e83588dc0a4b167af8f9e"
+        "attest.key": "aca58e5ca29a4f02dd0f29c298cabc08635c68c32d25ec9456ba11e4696d8a4e",
+        "ssh-host": "c91b5520466f9314af68892f82dbdb2dd315b43ae75121d06b3578907e800590",
+        "tls.key": "72414c73556ea686dd80d5a55accf93ac3dcdfd1322f70365741255d68841b32"
       },
       "depFilesHash": "6b8eb30a998d6266d01318d86c4facc62cabb0a1dd16353b6feb6629341a353d",
       "files": {
-        "attest.key": "9d96fb64a7ebd236633e9ce28247b047929e6f4d63b45b456821a1133644196b",
-        "ssh-host": "9d96fb64a7ebd236633e9ce28247b047929e6f4d63b45b456821a1133644196b",
-        "tls.key": "9d96fb64a7ebd236633e9ce28247b047929e6f4d63b45b456821a1133644196b"
+        "attest.key": "e5b5f82473a3982820e173c91a5e1675de95931d78b8370e50a2791b2deb8e57",
+        "ssh-host": "e5b5f82473a3982820e173c91a5e1675de95931d78b8370e50a2791b2deb8e57",
+        "tls.key": "e5b5f82473a3982820e173c91a5e1675de95931d78b8370e50a2791b2deb8e57"
       },
       "inputHash": "0a38fb0f323b934aed76adc957536cbadb9b835024e563b07f36b3f45271710c"
     },
@@ -171,42 +171,42 @@
     },
     "user/hcloud-api-token/_shared": {
       "ageHash": {
-        "env": "55068dbf272c953678635ec35b5c7e54ead2dd4a93917fe86cf94873c86928bb"
+        "env": "45e0d45f9f5869c06185bb9f54df231d0eb1011d3d9186ce717b506b0e0e171a"
       },
       "files": {
-        "env": "a2a5a998b23fb49ba21c322fc87abd50f78fad57cc606f0aaf27f27a4855c5ca"
+        "env": "07dc3b1cdd53dfc6acad082aaf23e6e00b0af3e23677352c21d623933c692864"
       },
       "inputHash": "67e2a5c87ccfe9caa259cd2bf9fb6c6ed20670f7829bfe62f9bfcd7d34a0262b"
     },
     "users/password-claude/_shared": {
       "ageHash": {
-        "hash": "f530fae0910d05e70d29aaaa3956adc575481840f3d5f16095ed493244cd7f23",
+        "hash": "a2b6f0009e163191711995e2c495fa8ece6178d0c99dc193853f2ea37302c0a2",
         "plain": "b0284df9bec49fb21978b613afe60f8f2c0301676feca465f43a3b66228242c7"
       },
       "files": {
-        "hash": "a2a5a998b23fb49ba21c322fc87abd50f78fad57cc606f0aaf27f27a4855c5ca",
+        "hash": "07dc3b1cdd53dfc6acad082aaf23e6e00b0af3e23677352c21d623933c692864",
         "plain": "9d96fb64a7ebd236633e9ce28247b047929e6f4d63b45b456821a1133644196b"
       },
       "inputHash": "1375b42e49acfde539a8b1eef9e0e401b8955eba18621be1c25a2dddb218c685"
     },
     "users/password-migration-test/_shared": {
       "ageHash": {
-        "hash": "fba8be47744d3b80806572688f6f056ce84ba046a9147f4cd10e31f82d3b2d74",
+        "hash": "397f1d7fa6396e92ec693aed52fb5e348f52bc7de6237cef318d89b25839cf7a",
         "plain": "f6c11b2b9daece06af9b6935058586fb90b3cafa68b81ded78ded913a30bfd6a"
       },
       "files": {
-        "hash": "a2a5a998b23fb49ba21c322fc87abd50f78fad57cc606f0aaf27f27a4855c5ca",
+        "hash": "07dc3b1cdd53dfc6acad082aaf23e6e00b0af3e23677352c21d623933c692864",
         "plain": "9d96fb64a7ebd236633e9ce28247b047929e6f4d63b45b456821a1133644196b"
       },
       "inputHash": "1375b42e49acfde539a8b1eef9e0e401b8955eba18621be1c25a2dddb218c685"
     },
     "users/password-zimbatm/_shared": {
       "ageHash": {
-        "hash": "44b0fe9af7af4485320e098e941499354622ac13f95b13a9b7523b5bc1204226",
+        "hash": "3da92cb42fdcb6c3f40d45ac6ac1454d88d53ce8c22c9452b115e044e1a06f7d",
         "plain": "3d42064e534587c72652bcd207afdd7ade4ff2a25b90230a1a86e4c1ef7d6a76"
       },
       "files": {
-        "hash": "a2a5a998b23fb49ba21c322fc87abd50f78fad57cc606f0aaf27f27a4855c5ca",
+        "hash": "07dc3b1cdd53dfc6acad082aaf23e6e00b0af3e23677352c21d623933c692864",
         "plain": "9d96fb64a7ebd236633e9ce28247b047929e6f4d63b45b456821a1133644196b"
       },
       "inputHash": "1375b42e49acfde539a8b1eef9e0e401b8955eba18621be1c25a2dddb218c685"

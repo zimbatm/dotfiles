@@ -53,21 +53,40 @@
   boot.enableContainers = true;
 
   # FIXME(distro): drop once upstream pins HF rev (resolve/<sha> not resolve/main) — upstream issue, not ours to vendor.
-  # distro@385a9fe pins the gemma-4-E2B GGUF via the mutable `resolve/main` HF ref;
-  # unsloth re-uploaded so the FOD hash drifted (rABp68... -> k3i8Rx...) and the nv1
-  # toplevel build fails (dry-run is a false green — FODs only verify on fetch).
-  # The model is a `let` binding inside distro's modules/nixos/llama-swap.nix, not a
-  # pkgs.* attr, so an overlay can't reach it — override the rendered cmd at the option
-  # layer. Reuse llama-server-package so we don't fork distro's accelerated llama-cpp.
-  services.llama-swap.settings.models."gemma4:e2b".cmd =
+  # distro@a80828ae pins both GGUFs via the mutable `resolve/main` HF ref using
+  # *eval-time* `builtins.fetchurl`. unsloth re-uploaded gemma so the hash
+  # drifted (rABp68... -> k3i8Rx...). A `lib.mkForce` on `.cmd` alone (the
+  # previous fix, 459f04b) does NOT prevent the eval failure: the module
+  # system's def-collection (`lib/modules.nix:1247` `isAttrs d.value`) forces
+  # *every* definition's value to WHNF to check for `_type`, and forcing a
+  # string with `${gemma4-e2b-gguf}` interpolation forces the builtins.fetchurl.
+  # Replacing the whole `settings.models` attr at mkForce priority means the
+  # module system never accesses distro's per-model entries, so the let
+  # bindings stay un-forced. Side-effect benefit: `pkgs.fetchurl` (build-time
+  # FOD) instead of `builtins.fetchurl` (eval-time / IFD-shaped) for both
+  # models — this is what distro should be doing anyway.
+  services.llama-swap.settings.models =
     let
       gemma4-e2b-gguf = pkgs.fetchurl {
         url = "https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf";
         hash = "sha256-k3i8RxcQIp7xZXCbYuNL+2IjFCDdr21ynnJzBbW4Zy0=";
       };
+      qwen25-05b-gguf = pkgs.fetchurl {
+        url = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf";
+        hash = "sha256-dKTajJ/bzRW9H20B1iFBDTHG/ACYb162h4JOe5PXqds=";
+      };
       llama-server = lib.getExe' config.services.llama-swap.llama-server-package "llama-server";
+      # mirror distro's modelArgs so modelExtraArgs still composes
+      modelArgs =
+        id:
+        lib.optionalString (config.services.llama-swap.modelExtraArgs ? ${id})
+          " ${config.services.llama-swap.modelExtraArgs.${id}}";
     in
-    lib.mkForce "${llama-server} -m ${gemma4-e2b-gguf} --port \${PORT}";
+    lib.mkForce {
+      "qwen2.5:0.5b".cmd =
+        "${llama-server} -m ${qwen25-05b-gguf} --port \${PORT}" + modelArgs "qwen2.5:0.5b";
+      "gemma4:e2b".cmd = "${llama-server} -m ${gemma4-e2b-gguf} --port \${PORT}" + modelArgs "gemma4:e2b";
+    };
 
   # NVIDIA RTX 4060 Max-Q (Ada / AD107M) for CUDA compute. Open kernel
   # modules — supported on Ada from the 555 series; production (595.58.03)
