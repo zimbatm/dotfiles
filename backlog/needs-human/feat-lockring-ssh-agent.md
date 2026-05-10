@@ -53,11 +53,14 @@ human action. The week of use is calendar time, not effort.
   wrapper). File this only after that ships.~~
   **CLEARED r10** — kin pin `fb13c282` (this round's bump) includes
   `services/lockring.nix` (`d21658e7`).
-- New gate: home needs `inputs.lockring` + mkFleet `extraInputs` wiring
+- ~~New gate: home needs `inputs.lockring` + mkFleet `extraInputs` wiring
   before `services.lockring` can be declared (kin module throws on
   build otherwise). Lock-touching ⇒ split out to
-  `backlog/bump-lockring-input.md` (filed r10). Once that lands, only
-  the deploy + week-of-use stay here.
+  `backlog/bump-lockring-input.md` (filed r10).~~
+  **CLEARED r11** — `bump-lockring-input` landed: `inputs.lockring`
+  (pin `f999b8da`), `mkFleet { extraInputs = { inherit (inputs) lockring; }; }`,
+  `services.lockring = { on = ["nv1"]; sshAgent = true; };`. Both hosts
+  eval + dry-build. Only the deploy + week-of-use stay here.
 - Human-gated: `kin deploy nv1` and the env-var flip need Jonas. After
   the wrapper lands, retag this `ops-` or move to `needs-human/`.
 

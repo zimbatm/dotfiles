@@ -122,6 +122,16 @@ in
     pendingOn = "llm-adapter/api-key/_shared/key";
   };
 
+  # Track L dogfood: lockring as nv1's per-user secrets daemon with the
+  # opt-in ssh-agent ingress (LOCKRING_SSH_AUTH_SOCK=1). kin does NOT
+  # flip $SSH_AUTH_SOCK — that and the week-of-use procedure stay in
+  # backlog/needs-human/feat-lockring-ssh-agent.md. Default policyFile
+  # = lockring's crates/lockring-core/examples/policy.cedar.
+  services.lockring = {
+    on = [ "nv1" ];
+    sshAgent = true;
+  };
+
   gen.gotosocial-restic = {
     for = [ "web2" ];
     perMachine = false;
