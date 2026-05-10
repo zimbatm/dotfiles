@@ -11,6 +11,14 @@
             "command": "nix build .#agentshell --out-link .claude/profile 2>/dev/null || true; [ -n \"$CLAUDE_ENV_FILE\" ] && printf 'export PATH=\"%s/.claude/profile/bin:$PATH\"\\n' \"$CLAUDE_PROJECT_DIR\" >> \"$CLAUDE_ENV_FILE\""
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/keys/reseed.sh\" 2>&1 || true"
+          }
+        ]
       }
     ]
   }
