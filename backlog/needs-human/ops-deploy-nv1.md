@@ -19,17 +19,19 @@ but nv1 was NOT in that batch (off-mesh from homespace) — if Jonas
 deployed nv1 locally at the same time it'd be at 77dfr1xn; otherwise
 sxmv9yvi carry-forward stays suspect.
 
-## Latest status (drift @ 5e01750, 2026-05-10)
+## Latest status (drift @ 38ccdcf, 2026-05-10)
 
 ```
 have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
-want: /nix/store/mmr7zsqbsx…-nixos-system-nv1-26.05.20260505.549bd84   (unchanged)
+want: /nix/store/lj1rs6ir15jsj19jifsphyjj01537v7i-nixos-system-nv1-26.05.20260505.549bd84
+build: ✓ FOD blocker CLEARED — gemma pin landed @ 459f04b (machines/nv1/configuration.nix)
 ```
 
 Want progression since fcc6b68 (Apr-24): 77dfr1xn → 1mdzqizi (e960caf) →
 n5smybmw (671f35b) → zi5as60q (e3c1cea) → 8l90l7hx (8231b3d) → qjdsdd97
 (23975b3) → rsb8r0kg (9def97e) → 53s3xn5k (cce49ee) → isgj6yg9 (80a9212)
-→ mbw1f3pr (6753fd8) → **mmr7zsqbsx (87a370f, holds @ 5e01750)**.
+→ mbw1f3pr (6753fd8) → mmr7zsqbsx (87a370f) → 3cyxaj1q (5d4d6b3) →
+qh011y8z (3603dcd) → **lj1rs6ir (38ccdcf — gemma pin @ 459f04b)**.
 Closure-affecting since 6753fd8: dc78daf (relay1 removal), 81fad96 /
 e166eac / f2a3653 / 231d9ff / c917b09 (gnome-keyring + signal libsecret
 churn), fb08d11 (fmt), 05b2e2c (kin bump for tab-indent fix). 8c7c93c +
@@ -361,3 +363,40 @@ immutable HF revision.
 
 Externals all <7d (nixpkgs 5d, hm 1d, srvos 3d, nixos-hw 3d,
 nix-index-db 0d, nixvim 4d) — no bump-* to file.
+
+### drift @ 38ccdcf (2026-05-10) — ✓ FOD blocker CLEARED
+
+```
+have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
+want: /nix/store/lj1rs6ir15jsj19jifsphyjj01537v7i-…549bd84   (was qh011y8z @ 3603dcd)
+build: ✓ dry-build 373 drvs / 0 fetch — gemma FOD no longer in build set
+```
+
+Closure mover since 3603dcd: **459f04b** (= `f796d39` post-merge) —
+`machines/nv1/configuration.nix` pins gemma-4-E2B GGUF at the option
+layer (`services.llama-swap.settings.models."gemma4:e2b".cmd =
+lib.mkForce …` with `hash = "sha256-k3i8Rx…"`) instead of distro's
+`let`-bound `fetchurl` against the now-rotated `resolve/main` ref.
+The model file with the new hash is already in the homespace store
+(`/nix/store/jakmd1zznwjkynvsbw5x5s87f4cb90zf-gemma-4-E2B-it-Q4_K_M.gguf`).
+`bug-distro-gemma-hash-drift.md` consumed; FIXME(distro) noted in the
+override comment for when upstream pins to an immutable HF revision.
+
+Verified: nv1 dry-build closure no longer contains any
+`gemma-4-E2B-it-Q4_K_M.gguf` FOD — the old `s7dg1njs…` drv is gone,
+the new fetchurl resolves to the in-store path. **`kin deploy nv1` is
+no longer FOD-blocked.** Remaining gate is mesh reachability only —
+`kin status nv1` still `not-on-mesh` (desktop offline or mesh ULA
+unreachable from homespace; no relay1 ProxyJump fallback since dc78daf).
+
+`1bf6327` (shell-squeeze TOON) is closure-neutral for nv1 —
+`shell-squeeze` reaches only the `agentshell` flake output
+(`flake.nix:108-123`), not `home.packages` or
+`environment.systemPackages`.
+
+Externals all <7d (nixpkgs 5.3d, hm 1.9d, srvos 3.4d, nixos-hw 3.1d,
+nix-index-db 0.2d, nixvim 4.9d) — no bump-* to file.
+
+Reconcile: `kin deploy nv1` from a mesh-connected machine (desk).
+Confirm any intentional local delta on nv1 is committed+pushed first
+(off-main `have` history, see ⚠ above). Then walk runtime checks.

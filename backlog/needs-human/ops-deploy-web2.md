@@ -1,9 +1,10 @@
-# web2: post-deploy runtime checks (CONVERGED gen-26 @ 87a370f, May-10)
+# web2: deploy + runtime checks (STALE again — carries 2 since gen-26 @ 87a370f)
 
-**What:** Walk the remaining runtime checks below on web2, then delete
-this file. Deploy itself is **done** — web2 human-deployed gen-26
-May-9 ~20:44 + reboot ~21:06, CONVERGED at 87a370f. Drifted gen-25
-(Apr-24 → May-9, carries reached 13) is history; relay1 retired.
+**What:** `kin deploy web2` (carries 2: kin builder-cert regen +
+iets bump), then walk the remaining runtime checks below, then delete
+this file. Last human deploy: gen-26 May-9 ~20:44 + reboot ~21:06,
+CONVERGED at 87a370f for ~1 day before bumps re-staled it. Drifted
+gen-25 (Apr-24 → May-9, carries reached 13) is history; relay1 retired.
 
 **Blockers:** Human-gated. Non-root probe (kin-bir7vyhu) covers
 service-level; the unchecked items below need root SSH or at-the-host
@@ -108,3 +109,30 @@ builder-cert regen rotates `/etc/ssh/ssh_known_hosts` and the
 `@cert-authority` entry; confirm the fleet CA signing key hasn't
 rotated underneath the deployed cert before applying). Then re-walk
 the unverified runtime checks above (pin-nixpkgs, attest identity).
+
+### drift @ 38ccdcf (2026-05-10)
+
+```
+have: /nix/store/kjiq55xlnipwssavflkz9isq3zhxwpgq-…549bd84   (gen-26, May-9)
+want: /nix/store/zm1v54mngycdxrwl07w8cq4i9nsasj6z-…549bd84   (unchanged @ 3603dcd)
+carries: 2 — STALE, no new movers
+```
+
+No web2-closure delta since 3603dcd. The two `.nix` commits since
+0639edd (last drift) are nv1-only / agentshell-only: `459f04b`
+(`machines/nv1/configuration.nix` gemma pin) and `1bf6327`
+(`packages/shell-squeeze/default.nix`, reaches only the `agentshell`
+flake output). Carries hold at 2 (`5decc79` iets bump + `e22951a`
+kin builder-cert regen).
+
+Dry-build PASS: web2 0 drvs to build (toplevel `zm1v54mn` already in
+local store). `kin status` health: degraded — uptime 0d14h14m,
+`restic-backups-gotosocial.service` still failing every hourly cycle
+(`server unexpectedly closed connection: unexpected EOF` — tracked in
+`ops-web2-restic-rsyncnet.md`, not config drift). Not rebooted since
+gen-26 deploy May-9 ~21:06.
+
+Externals all <7d (nixpkgs 5.3d, hm 1.9d, srvos 3.4d, nixos-hw 3.1d,
+nix-index-db 0.2d, nixvim 4.9d) — no bump-* to file.
+
+Reconcile: unchanged from `### drift @ 3603dcd`.
