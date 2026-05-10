@@ -1,8 +1,8 @@
-# web2: deploy + runtime checks (STALE again — carries 2 since gen-26 @ 87a370f)
+# web2: deploy + runtime checks (STALE again — carries 3 since gen-26 @ 87a370f)
 
-**What:** `kin deploy web2` (carries 2: kin builder-cert regen +
-iets bump), then walk the remaining runtime checks below, then delete
-this file. Last human deploy: gen-26 May-9 ~20:44 + reboot ~21:06,
+**What:** `kin deploy web2` (carries 3: kin builder-cert regen +
+iets bump ×2 + kin bump), then walk the remaining runtime checks below,
+then delete this file. Last human deploy: gen-26 May-9 ~20:44 + reboot ~21:06,
 CONVERGED at 87a370f for ~1 day before bumps re-staled it. Drifted
 gen-25 (Apr-24 → May-9, carries reached 13) is history; relay1 retired.
 
@@ -136,3 +136,40 @@ Externals all <7d (nixpkgs 5.3d, hm 1.9d, srvos 3.4d, nixos-hw 3.1d,
 nix-index-db 0.2d, nixvim 4.9d) — no bump-* to file.
 
 Reconcile: unchanged from `### drift @ 3603dcd`.
+
+### drift @ bd8ef65 (2026-05-10)
+
+```
+have: /nix/store/kjiq55xlnipwssavflkz9isq3zhxwpgq-…549bd84   (gen-26, May-9)
+want: /nix/store/f06q7cg89xb9srxc1plsw6kngs0m8cjv-…549bd84   (was zm1v54mn @ 38ccdcf)
+carries: 3 — STALE
+```
+
+Closure mover: **d8a49c0** (kin `4db2186d→fb13c282`, iets
+`751471a8→42fa90c1`). web2's closure delta is exactly the kin/iets
+bump fan-out: `iets-0.1.0`, `kin-attest-publish`, `nix.conf`,
+`unit-{ietsd,iets-attest-log,nix-daemon,dbus-broker}.service`,
+`X-Restart-Triggers-{ietsd,nix-daemon,dbus-broker}` and the etc/
+system-units/system-path cascade — 18 paths swap, closure size holds
+at 701. **db007f8** (home-manager `fdb2ccba→2f419037`) is
+web2-closure-neutral — no HM-managed users on web2's tag-set.
+**4df1c0c** (packages harden — `llm-router.py`,
+`lib/dictation-vocab.sh`, `sem-grep/bench-vs-ck.sh`) is web2-neutral
+too — those packages reach only the desktop/terminal HM modules, not
+the server profile. Carries grow 2→3 (`5decc79` iets + `e22951a`
+kin builder-cert + `d8a49c0` kin/iets re-bump).
+
+Dry-build PASS: web2 0 drvs to build (toplevel `f06q7cg89` already in
+local store). `kin status` health: degraded — uptime 0d14h50m,
+mem 2.8G/3.7G (74%), disk 13.3G/36.8G (36%), no needs_reboot,
+`restic-backups-gotosocial.service` still failing (tracked in
+`ops-web2-restic-rsyncnet.md`, not config drift). Not rebooted since
+gen-26 deploy May-9 ~21:06.
+
+Externals all <7d (nixpkgs 5d, hm 0d, srvos 3d, nixos-hw 3d,
+nix-index-db 0d, nixvim 4d) — no bump-* to file.
+
+Reconcile: unchanged from `### drift @ 3603dcd` — `kin deploy web2`
+after the lockout-recovery check (the kin builder-cert carry from
+e22951a is still in this delta; confirm fleet CA signing key hasn't
+rotated underneath the deployed cert).

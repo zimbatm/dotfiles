@@ -19,19 +19,20 @@ but nv1 was NOT in that batch (off-mesh from homespace) — if Jonas
 deployed nv1 locally at the same time it'd be at 77dfr1xn; otherwise
 sxmv9yvi carry-forward stays suspect.
 
-## Latest status (drift @ 38ccdcf, 2026-05-10)
+## Latest status (drift @ bd8ef65, 2026-05-10)
 
 ```
 have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
-want: /nix/store/lj1rs6ir15jsj19jifsphyjj01537v7i-nixos-system-nv1-26.05.20260505.549bd84
-build: ✓ FOD blocker CLEARED — gemma pin landed @ 459f04b (machines/nv1/configuration.nix)
+want: /nix/store/lf0ln19z3d5bf2smqg3dgzwkgr2kpgpb-nixos-system-nv1-26.05.20260505.549bd84
+build: ✓ dry-build ~250 drvs/0 fetch — no FOD blocker observed
 ```
 
 Want progression since fcc6b68 (Apr-24): 77dfr1xn → 1mdzqizi (e960caf) →
 n5smybmw (671f35b) → zi5as60q (e3c1cea) → 8l90l7hx (8231b3d) → qjdsdd97
 (23975b3) → rsb8r0kg (9def97e) → 53s3xn5k (cce49ee) → isgj6yg9 (80a9212)
 → mbw1f3pr (6753fd8) → mmr7zsqbsx (87a370f) → 3cyxaj1q (5d4d6b3) →
-qh011y8z (3603dcd) → **lj1rs6ir (38ccdcf — gemma pin @ 459f04b)**.
+qh011y8z (3603dcd) → lj1rs6ir (38ccdcf — gemma pin @ 459f04b) →
+**lf0ln19z (bd8ef65 — kin/iets/hm bump + grind-pkg harden)**.
 Closure-affecting since 6753fd8: dc78daf (relay1 removal), 81fad96 /
 e166eac / f2a3653 / 231d9ff / c917b09 (gnome-keyring + signal libsecret
 churn), fb08d11 (fmt), 05b2e2c (kin bump for tab-indent fix). 8c7c93c +
@@ -396,6 +397,56 @@ unreachable from homespace; no relay1 ProxyJump fallback since dc78daf).
 
 Externals all <7d (nixpkgs 5.3d, hm 1.9d, srvos 3.4d, nixos-hw 3.1d,
 nix-index-db 0.2d, nixvim 4.9d) — no bump-* to file.
+
+Reconcile: `kin deploy nv1` from a mesh-connected machine (desk).
+Confirm any intentional local delta on nv1 is committed+pushed first
+(off-main `have` history, see ⚠ above). Then walk runtime checks.
+
+### drift @ bd8ef65 (2026-05-10)
+
+```
+have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
+want: /nix/store/lf0ln19z3d5bf2smqg3dgzwkgr2kpgpb-…549bd84   (was lj1rs6ir @ 38ccdcf)
+build: ✓ dry-build ~250 drvs / 0 fetch — no FOD blocker observed in build set
+```
+
+Closure movers since 38ccdcf — three commits, all closure-affecting
+for nv1:
+
+- **d8a49c0** kin `4db2186d→fb13c282` + iets `751471a8→42fa90c1`
+  (both reach nv1 via kin-mesh/kin-secrets units + iets pkg in
+  `extraAgentPackages`).
+- **db007f8** home-manager `fdb2ccba→2f419037` — moves all
+  `modules/home/{desktop,terminal}` HM-managed packages
+  (`useGlobalPkgs+useUserPackages` puts them in the system closure).
+- **4df1c0c** packages harden — `llm-router.py` (in
+  `modules/home/desktop/default.nix:192` → `home.packages`),
+  `lib/dictation-vocab.sh` (sourced by ptt-dictate/transcribe-{cpu,npu}),
+  `sem-grep/bench-vs-ck.sh` (sem-grep pkg). All three are
+  `.sh`/`.py` source files baked into nv1 derivations, so they move
+  the toplevel even without a `.nix` diff.
+
+Dry-build PASS at ~250 drvs / 0 fetch when started, draining steadily
+under a parallel `nix build --keep-going` probe (250→36 over ~5 min,
+no errors); remaining tail is heavy compile-bound desktop set
+(`quickshell`, `noctalia-shell`, `cuda12.9-libcublas`, `llama-cpp-8983`,
+`gitbutler-vendor-staging`) inherited from the `distro` input — none
+new, all existed in `lj1rs6ir`. One CA FOD remains
+(`gitbutler-0.19.7-vendor-staging`) — fixed-hash cargo vendor bundle,
+not a `resolve/main`-style mutable URL, low drift risk. **No new FOD
+blocker** — gemma pin from 459f04b holds.
+
+Probe note: `kin status nv1` = `nix build --no-link --json` on the
+toplevel (kin/evaluator.py:194), which on a cold homespace store
+**realises** the whole closure before it can compare have/want. That
+exceeded a 120 s probe timeout this round → `Build failed due to
+failed dependency` (timeout artifact, NOT a real eval/build failure;
+`nix build --dry-run` and the `--keep-going` build both pass). web2's
+toplevel was already in store so its `kin status` returned instantly.
+nv1 itself stays `not-on-mesh` regardless.
+
+Externals all <7d (nixpkgs 5d, hm 0d, srvos 3d, nixos-hw 3d,
+nix-index-db 0d, nixvim 4d) — no bump-* to file.
 
 Reconcile: `kin deploy nv1` from a mesh-connected machine (desk).
 Confirm any intentional local delta on nv1 is committed+pushed first
