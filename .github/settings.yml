@@ -67,7 +67,6 @@ branches:
         contexts:
           - "Evaluate flake.nix"
           - "nixosConfig nv1"
-          - "nixosConfig relay1"
           - "nixosConfig web2"
       # Required. Enforce all configured restrictions for administrators. Set to true to enforce required status checks for repository administrators. Set to null to disable.
       enforce_admins: null

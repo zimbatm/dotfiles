@@ -46,4 +46,4 @@ Don't open GitHub issues; don't keep local notes. The sibling's own `/grind` tri
 
 ## /grind
 
-Specialists rotate: **drift** (deployed-vs-declared per host, flake.lock age), **simplifier** (dead modules, unused inputs, lift duplicates — keep this repo small), **bumper** (one input per round, oldest-first; nixpkgs > kin > iets priority), **scout** (survey Mic92/awesome-nix/nixpkgs-AI for tooling worth trying on nv1; file adopt-* sketches, max 2/round — original angles, not copies). Gate: all 3 kin-managed hosts eval + dry-build. See `.claude/commands/grind.md`.
+Specialists rotate: **drift** (deployed-vs-declared per host, flake.lock age), **simplifier** (dead modules, unused inputs, lift duplicates — keep this repo small), **bumper** (one input per round, oldest-first; nixpkgs > kin > iets priority), **scout** (survey Mic92/awesome-nix/nixpkgs-AI for tooling worth trying on nv1; file adopt-* sketches, max 2/round — original angles, not copies). Gate: all kin-managed hosts eval + dry-build. See `.claude/commands/grind.md`.
