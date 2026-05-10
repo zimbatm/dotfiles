@@ -19,21 +19,25 @@ but nv1 was NOT in that batch (off-mesh from homespace) — if Jonas
 deployed nv1 locally at the same time it'd be at 77dfr1xn; otherwise
 sxmv9yvi carry-forward stays suspect.
 
-## Latest status (drift @ 87a370f, 2026-05-10)
+## Latest status (drift @ 5e01750, 2026-05-10)
 
 ```
 have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
-want: /nix/store/mmr7zsqbsx…-nixos-system-nv1-26.05.20260505.549bd84
+want: /nix/store/mmr7zsqbsx…-nixos-system-nv1-26.05.20260505.549bd84   (unchanged)
 ```
 
 Want progression since fcc6b68 (Apr-24): 77dfr1xn → 1mdzqizi (e960caf) →
 n5smybmw (671f35b) → zi5as60q (e3c1cea) → 8l90l7hx (8231b3d) → qjdsdd97
 (23975b3) → rsb8r0kg (9def97e) → 53s3xn5k (cce49ee) → isgj6yg9 (80a9212)
-→ mbw1f3pr (6753fd8) → **mmr7zsqbsx (87a370f)**. Closure-affecting since
-6753fd8: dc78daf (relay1 removal), 81fad96 / e166eac / f2a3653 / 231d9ff
-/ c917b09 (gnome-keyring + signal libsecret churn), fb08d11 (fmt), 05b2e2c
-(kin bump for tab-indent fix). Dry-build 486 drvs / 1245 fetch / 4.3 GiB
-(was 542/1279/4.4G).
+→ mbw1f3pr (6753fd8) → **mmr7zsqbsx (87a370f, holds @ 5e01750)**.
+Closure-affecting since 6753fd8: dc78daf (relay1 removal), 81fad96 /
+e166eac / f2a3653 / 231d9ff / c917b09 (gnome-keyring + signal libsecret
+churn), fb08d11 (fmt), 05b2e2c (kin bump for tab-indent fix). 8c7c93c +
+33ac9da (packages/openwarp + flake.nix wire-up) are closure-neutral —
+flake-output only, not in `environment.systemPackages` or
+`home.packages`; nv1 + web2 toplevel drvs identical pre/post. Dry-build
+486 drvs / 1230 fetch / 4.3 GiB (was 486/1245/4.3G — small fetch
+shrink, likely substitute cache state, no closure delta).
 Last confirmed have==want on origin/main: `www09p3bx` @ 9403a95
 (≈ e196255 deploy, 2026-04-11). nv1 unprobeable since (mesh; relay
 gone). **Note:** Jonas was active locally on May-9 (deployed web2
