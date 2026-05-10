@@ -286,3 +286,36 @@ reconverged, fleet identity self-healed via kin login --key kin-infra) into
 lj1rs6ir→lf0ln19z→i1sbs5cp→pdbl6y1n→mj9xr536. relay1 retired dc78daf May-9,
 re-created 74ed8ef May-10, installed gen-1 dikz2p8m by drift @ a246abf.
 ops-deploy-relay1.md + ops-deploy-web2.md both closed this round. -->
+
+### drift @ 0bcca15 (2026-05-11 ~01:30 UTC) — **nv1 DEPLOYED, AT WANT**
+
+The thing this file has been waiting for since 2026-04-11 happened.
+`kin deploy nv1` ran at the desk **2026-05-11 ~00:56 local**, immediately
+after the locksmith-workaround commit (0bcca15, 00:55:19).
+
+```
+have:   /nix/store/57md0024s6cxnb5nwh37xv55ks440kdl-nixos-system-nv1-26.05.20260505.549bd84   gen-123, May-11 00:56
+booted: /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-nixos-system-nv1-26.05.20260505.549bd84   (gen-26, the May-9 deploy — still booted)
+want:   /nix/store/57md0024s6cxnb5nwh37xv55ks440kdl-nixos-system-nv1-26.05.20260505.549bd84   == have ✓ (eval @ 0bcca15)
+health: running, 0 failed, uptime ~10h, load ~1.4
+probe:  ✓ proxyJump=relay1 path now works — `ssh nv1.bir7vyhu` over
+        relay1 jump returns instantly. The gen-26 mesh-config blocker is
+        gone; nv1's mesh registers with the re-created relay1.
+        (`kin status nv1` itself still times out at 60s — that's the
+        local toplevel build step on a cold homespace store, not a
+        network problem; a direct readlink probe is sub-second.)
+```
+
+**Reading:** the ~10 carries are CLEARED. nv1 is the third and last
+host to land on the post-relay1-recreate world (relay1 gen-1 → web2
+gen-28 → nv1 gen-123). `current != booted` — switch-to-configuration
+without reboot — so kernel/initrd checks in the runtime list below
+should be deferred to next boot.
+
+**Next:** this file's "deploy nv1" portion is DONE. Walk the runtime
+checks from the desk (the `## Runtime checks` block above, ~50 items),
+strike or annotate each, then delete the file. Don't close it from a
+homespace — most checks need GUI/audio/NPU.
+
+(relay1 + web2 went stale in the same window — lockring bump d723a82;
+filed `drift-relay1.md` and `drift-web2.md`, separate from this item.)
