@@ -151,7 +151,15 @@ in
   gen.gotosocial-rsyncnet = {
     for = [ "web2" ];
     perMachine = false;
-    files.password.secret = true;
+    # SSH private key for sftp:zh6422@zh6422.rsync.net (key auth, not
+    # password — see modules/nixos/gotosocial.nix). Same key as kin-infra's
+    # gen.user/backup-offsite-creds. Set with:
+    #   kin -C ../kin-infra get user/backup-offsite-creds/_shared/env \
+    #     | kin set user/gotosocial-rsyncnet/_shared/key
+    files.key = {
+      secret = true;
+      external = true;
+    };
   };
 
   # Hetzner Cloud API token for the *personal* project hosting web2 and

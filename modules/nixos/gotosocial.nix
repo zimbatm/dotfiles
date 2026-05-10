@@ -1,7 +1,6 @@
 {
   config,
   kin,
-  pkgs,
   ...
 }:
 let
@@ -25,10 +24,15 @@ in
     passwordFile = kin.gen."user/gotosocial-restic".password;
     paths = [ "/var/lib/gotosocial" ];
     repository = "sftp:${rsyncnet}:gotosocial";
+    # Key auth, not sshpass — same rsync.net account/key as kin-infra's
+    # backup-offsite-creds (rsync.net has no S3, restic talks SFTP). Key
+    # auth so rotation is one `kin set` instead of a rsync.net console
+    # password change, and the credential never crosses the SSH password
+    # negotiation. BatchMode=yes: fail fast on auth rather than prompt.
     extraOptions = [
-      "sftp.command='${pkgs.sshpass}/bin/sshpass -f ${
-        kin.gen."user/gotosocial-rsyncnet".password
-      } ssh -o BatchMode=no -o StrictHostKeyChecking=accept-new ${rsyncnet} -s sftp'"
+      "sftp.command='ssh -i ${
+        kin.gen."user/gotosocial-rsyncnet".key
+      } -o BatchMode=yes -o StrictHostKeyChecking=accept-new ${rsyncnet} -s sftp'"
     ];
     pruneOpts = [
       "--keep-daily 7"

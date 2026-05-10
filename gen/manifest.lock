@@ -162,12 +162,12 @@
     },
     "user/gotosocial-rsyncnet/_shared": {
       "ageHash": {
-        "password": "c0692c67ad04b923daa4a99638315f3b4a82e8a870142d91b80d811494e3c7f3"
+        "key": "814a20a941df39a2496ad25e654b619cf3ee80af09ac81fc1809f37d9e524eec"
       },
       "files": {
-        "password": "520935c6b73ee490a299ba17dab7c02a4df72e59add28826cfa34df0c51f1bdc"
+        "key": "520935c6b73ee490a299ba17dab7c02a4df72e59add28826cfa34df0c51f1bdc"
       },
-      "inputHash": "1f6fac16216f1dd2ff372d42944693eac188c321986a32a08bc325b706336b2e"
+      "inputHash": "ca41b9ef3786776c6c94b6c37e638ddc524f9e7effb84f46bc562a8e5a1b4f91"
     },
     "user/hcloud-api-token/_shared": {
       "ageHash": {
