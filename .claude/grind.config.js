@@ -19,13 +19,15 @@ const CONFIG = {
   // drift is the work-generator (declared-vs-deployed); weight it 3× so
   // backlog refills faster than implementers drain (meta-roster p51).
   rotation: ['drift', 'simplifier', 'drift', 'bumper', 'drift', 'scout'],
-  // Self-heal fleet identity. users.claude is enrolled with the soft key
-  // ~/.ssh/kin-infra_ed25519 (kin.nix:28) — no hardware key needed. Homespace
-  // state loss drops kin-bir7vyhu_* ~monthly; 16 rounds sat UNPROBEABLE on a
-  // false hardware-key gate before this was found.
-  treeGuard: `[[ -f ~/.ssh/kin-bir7vyhu_ed25519 ]] || \\
-  { [[ -f ~/.ssh/kin-infra_ed25519 ]] && kin login claude --key ~/.ssh/kin-infra_ed25519 >&2; } || \\
-  echo "treeGuard: home-fleet identity absent, self-heal key missing — drift will be UNPROBEABLE" >&2`,
+  // Self-heal fleet identity. `kin login` writes the user cert chain to
+  // ~/.config/kin/bir7vyhu/cert.pub and keeps using ~/.ssh/kin-infra_ed25519 as
+  // the bare key — both ephemeral on a homespace rebuild. The durable source is
+  // ../kin-infra/keys/reseed.sh (in-repo, persistent volume), which keys/reseed.sh
+  // delegates to before re-running `kin login` here. Normally the SessionStart
+  // hook runs reseed before the first prompt; this guard is the round-N backstop.
+  treeGuard: `[[ -f ~/.config/kin/bir7vyhu/cert.pub && -f ~/.ssh/kin-infra_ed25519 ]] || \\
+  bash keys/reseed.sh >&2 || \\
+  echo "treeGuard: home-fleet identity absent and reseed failed — drift will be UNPROBEABLE" >&2`,
   // checks.x86_64-linux = {fmt, nv1, relay1, web2}; --no-build = eval-only (dry-build parity).
   // ~21s vs ~23s for the old per-host loop — single process shares the nixpkgs import.
   // iets step: `kin deploy` evals via iets which bans IFD (ADR-0011 → IETS-0025); plain
