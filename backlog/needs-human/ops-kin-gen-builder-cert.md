@@ -1,5 +1,16 @@
 # ops-kin-gen-builder-cert — regen builder-cert.pub before bumping kin past 9dbbff28
 
+> **needs-human** (rerouted 2026-05-10): generating
+> `gen/identity/machine/{nv1,web2}/builder-cert.pub` requires `kin gen`
+> with the home fleet admin age identity (decrypts
+> `gen/identity/ca/_shared/ssh-ca.age` + per-machine `ssh-host.age`).
+> That identity is not on the grind homespace — `~/.config/kin/key` is a
+> broken symlink and `bir7vyhu.key` is a TLS client key, not age.
+> `kin gen --check --json` confirms `identity/machine/{nv1,web2}` held on
+> `$prev`. No grind implementer can satisfy this. **Pair with
+> `ops-builders-key-drop.md` (this directory) for one human sit-down** —
+> kin gen → bump kin → kin deploy hcloud-07 + nv1 → re-test falsifiers.
+
 ## What
 
 kin@2f79c99c (merge 9dbbff28 `feat-builders-peer-fleet-keys`,
