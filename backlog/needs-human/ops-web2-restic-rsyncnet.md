@@ -69,5 +69,13 @@ Likely outcomes (ranked):
   secret-not-mounted and unit-config staleness.
 - Companion `ops-web2-acme-renew.md` *was* cleared by the same deploy
   and is closed.
+- **gen-27 deploy + reboot (May-10 ~12:13) — DO NOT CLOSE on the
+  false-clean.** `kin status` reports `FAILED -` and `is-failed` says
+  `inactive` immediately after the reboot, but the journal shows the
+  same `Fatal: …unexpected EOF` at 12:00 UTC (one minute before
+  reboot), and the deploy didn't touch `gotosocial.nix` or the secret.
+  Reboot reset the unit's FAILED flag; the next timer fire is 13:00
+  UTC. Re-probe after that before considering this resolved.
+  (drift @ d9ac7f1, 2026-05-10)
 
 Filed by drift @ 87a370f, 2026-05-10.

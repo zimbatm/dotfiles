@@ -1,28 +1,29 @@
-# web2: deploy + runtime checks (STALE again — carries 3 since gen-26 @ 87a370f)
+# web2: deploy + runtime checks (STALE — carries 1 since gen-27 @ bd8ef65)
 
-**What:** `kin deploy web2` (carries 3: kin builder-cert regen +
-iets bump ×2 + kin bump), then walk the remaining runtime checks below,
-then delete this file. Last human deploy: gen-26 May-9 ~20:44 + reboot ~21:06,
-CONVERGED at 87a370f for ~1 day before bumps re-staled it. Drifted
-gen-25 (Apr-24 → May-9, carries reached 13) is history; relay1 retired.
+**What:** `kin deploy web2` (carries 1: lockring landing 7f043af —
+gen/manifest.lock + gen/_policy regen; lockring service is nv1-only
+but the gen/ side touches all hosts), then walk the remaining runtime
+checks below, then delete this file. Last human deploy: gen-27
+May-10 ~12:13 + reboot, flushed the 3 carries from gen-26 within a
+day. Carries grew back to 1 immediately (7f043af landed before the
+deploy was probed).
 
 **Blockers:** Human-gated. Non-root probe (kin-bir7vyhu) covers
 service-level; the unchecked items below need root SSH or at-the-host
 verification, refused by harness for META.
 
-## Status (drift @ 87a370f, 2026-05-10)
+## Status (drift @ d9ac7f1, 2026-05-10)
 
 ```
-web2:  have kjiq55xlnipwssavflkz9isq3zhxwpgq…549bd84 (gen-26, May-9)
-       want kjiq55xlnipwssavflkz9isq3zhxwpgq…549bd84 (87a370f)
-       carries 0 — CONVERGED
-nv1:   not-on-mesh                                  want mmr7zsqbsx…549bd84
+web2:  have f06q7cg89xb9srxc1plsw6kngs0m8cjv…549bd84 (gen-27, May-10 ~12:13, rebooted)
+       want b1vki8smbl8jjmcssx6lw8lhpn0nf1ly…549bd84 (7f043af = d9ac7f1)
+       carries 1 — STALE
+nv1:   have mmr7zsqbsx…549bd84 (= 87a370f, gen-26)  want i1sbs5cp…549bd84 (carries 5)
 ```
 
-13 carries flushed in one deploy. Dry-build web2 0/0/0 (already in
-local store). nv1 dry-build 486/1245/4.3G (was 542/1279/4.4G —
-fetches landed). Externals all <7d (nixpkgs 5.1d, hm 1.8d, srvos
-3.2d, nixos-hw 3.0d, nix-index-db 1.8d, nixvim 4.7d).
+3 carries flushed in the gen-27 deploy. Dry-build web2 0/0/0 (already
+in local store). nv1 dry-build 33 drvs / 0 fetch. nv1 PROBEABLE again
+via `ssh -J web2` (see `ops-deploy-nv1.md`). Externals all <7d.
 
 ## Runtime checks — web2 (5/8 PASS via drift spot-check @ gen-26, 2 remain, 1 fixed)
 
@@ -173,3 +174,45 @@ Reconcile: unchanged from `### drift @ 3603dcd` — `kin deploy web2`
 after the lockout-recovery check (the kin builder-cert carry from
 e22951a is still in this delta; confirm fleet CA signing key hasn't
 rotated underneath the deployed cert).
+
+### drift @ d9ac7f1 (2026-05-10) — gen-27 DEPLOYED + REBOOTED, 1 new carry
+
+```
+have:   /nix/store/f06q7cg89xb9srxc1plsw6kngs0m8cjv-…549bd84   (gen-27, May-10 ~12:13)
+booted: /nix/store/f06q7cg89xb9srxc1plsw6kngs0m8cjv-…549bd84   (have == booted == current — clean)
+want:   /nix/store/b1vki8smbl8jjmcssx6lw8lhpn0nf1ly-…549bd84   (was f06q7cg89 @ bd8ef65)
+carries: 1 — STALE
+build:  ✓ dry-build 0 drvs / 0 fetch
+```
+
+web2 was deployed to gen-27 (`f06q7cg89` — the want from `### drift @
+bd8ef65`) and **rebooted** at ~May-10 12:13. The 3 carries from gen-26
+(5decc79 iets, e22951a builder-cert, d8a49c0 kin/iets) flushed in one
+deploy. Uptime 16 min at probe.
+
+Closure mover since bd8ef65: **7f043af** (`grind/bump-lockring-input`
+merge). web2 does *not* import the lockring nixosModule
+(`services.lockring.on = ["nv1"]` — `kin-opts` confirms web2 has no
+`services.lockring.enable` option), but the merge regenerates
+`gen/_policy/_shared/export.cedar` (+3 lines) and `gen/manifest.lock`
+(rev bump), both of which land in every host's `/etc` cascade. `flake.nix`
+`extraInputs` is eval-only; `flake.lock`'s new `lockring` node is a
+narHash dependency of the `self` flake input. Net: web2 toplevel moves
+on the gen/ side only — small delta, 0 new drvs.
+
+**Failed unit caveat:** `kin status web2` shows `FAILED -` and
+`systemctl is-failed restic-backups-gotosocial.service` reports
+`inactive` — but that's a **reboot artifact, not a fix**. The service
+last fired at 12:00 UTC (still
+`Fatal: unable to open repository at sftp:zh6422@zh6422.rsync.net…
+unexpected EOF`), web2 rebooted at ~12:13, the systemd FAILED state
+reset, and the next timer fire is 13:00 UTC. `ops-web2-restic-rsyncnet.md`
+stays open — the gen-27 deploy did not change `gotosocial.nix` or the
+secret. Re-check after 13:00 UTC before closing.
+
+Externals all <7d (nixpkgs 4d, hm 0d, srvos 2d, nixos-hw 2d,
+nix-index-db 0d, nixvim 4d) — no bump-* to file. gen/ up to date
+(`kin gen --check` passes).
+
+Reconcile: `kin deploy web2`. Then re-walk the unverified runtime
+checks (pin-nixpkgs, attest identity); re-check restic at 13:00+.

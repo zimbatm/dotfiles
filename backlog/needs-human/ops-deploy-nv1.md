@@ -3,28 +3,34 @@
 **What:** Run `kin deploy nv1` from a mesh-connected machine, then walk
 the deferred runtime checks below.
 
-**Blockers:** Human-gated (CLAUDE.md). Worker identity RESTORED
-(kin-bir7vyhu @ 139c681 self-heal) but nv1 reports `not-on-mesh` —
-desktop offline or off the maille mesh from this homespace. `kin ssh
-nv1` fails (mesh ULA fd0c:…deae `Network is unreachable`). The
-relay1 ProxyJump fallback is gone — relay1 decommissioned @ dc78daf
-(2026-05-09). HAVE unprobeable for mesh-reachability not identity.
+**Blockers:** Human-gated (CLAUDE.md). ~~`not-on-mesh` from
+homespace~~ → **PROBEABLE again** (drift @ d9ac7f1, 2026-05-10): the
+mesh ULA `fd0c:…deae` is unreachable directly, but **web2 has a
+`kinq0` route to nv1's ULA and a public IPv4** — `ssh -J web2`
+(or `ProxyCommand="ssh root@89.167.46.118 nc -6 %h %p"`) reaches
+nv1's sshd. This is the relay1 replacement that nobody noticed:
+the leg existed since web2 joined the mesh; only the configured
+`proxyJump = "relay1"` SSH alias went away with relay1.
+`kin status nv1` is still slow (it `nix build`s the toplevel before
+comparing — see probe note in `### drift @ bd8ef65`) but raw
+`readlink /run/current-system` works.
 
-**⚠ Off-main `have`:** nv1 has been deployed from a dirty/off-branch
-tree **twice** (d2ad1d1: `gfcs7jg5` matched no origin/main eval;
-53bed8f: `sxmv9yvi` again off-main). **Confirm any intentional local
-delta on nv1 is committed+pushed before `kin deploy nv1` overwrites
-it.** relay1+web2 were both human-deployed Apr-24 20:06 @ fcc6b68-tip
-but nv1 was NOT in that batch (off-mesh from homespace) — if Jonas
-deployed nv1 locally at the same time it'd be at 77dfr1xn; otherwise
-sxmv9yvi carry-forward stays suspect.
+**~~⚠ Off-main `have`~~ — CLEARED (drift @ d9ac7f1):** nv1's
+deployed toplevel is `mmr7zsqbsx…549bd84`, an **exact match for
+origin/main @ 87a370f** (the gen-26 deploy from the desk, May-9
+~20:44). The d2ad1d1 / 53bed8f off-main carries are gone. No local
+delta to preserve — `kin deploy nv1` is safe from a tree-state
+perspective. Booted system is older (`q4a00q1m…`, boot May-8 ~21:47
+— `current != booted`, switch-to-configuration without reboot).
 
-## Latest status (drift @ bd8ef65, 2026-05-10)
+## Latest status (drift @ d9ac7f1, 2026-05-10)
 
 ```
-have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
-want: /nix/store/lf0ln19z3d5bf2smqg3dgzwkgr2kpgpb-nixos-system-nv1-26.05.20260505.549bd84
-build: ✓ dry-build ~250 drvs/0 fetch — no FOD blocker observed
+have:   /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-…549bd84   (= 87a370f, gen-26, May-9)
+booted: /nix/store/q4a00q1mixlspzglspc35wm3ra2n5i6z-…549bd84   (boot May-8 ~21:47, no reboot since)
+want:   /nix/store/i1sbs5cpx4qxapc18h90djz4hlz3ad12-…549bd84   (was lf0ln19z @ bd8ef65)
+carries: 5 (5d4d6b3, 3603dcd, 38ccdcf, bd8ef65, 7f043af)
+build:  ✓ dry-build 33 drvs / 0 fetch
 ```
 
 Want progression since fcc6b68 (Apr-24): 77dfr1xn → 1mdzqizi (e960caf) →
@@ -451,3 +457,65 @@ nix-index-db 0d, nixvim 4d) — no bump-* to file.
 Reconcile: `kin deploy nv1` from a mesh-connected machine (desk).
 Confirm any intentional local delta on nv1 is committed+pushed first
 (off-main `have` history, see ⚠ above). Then walk runtime checks.
+
+### drift @ d9ac7f1 (2026-05-10) — ✓ HAVE confirmed on-main; nv1 PROBEABLE via web2
+
+```
+have:   /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-…549bd84   (= 87a370f, gen-26, May-9)
+booted: /nix/store/q4a00q1mixlspzglspc35wm3ra2n5i6z-…549bd84   (boot May-8 ~21:47)
+want:   /nix/store/i1sbs5cpx4qxapc18h90djz4hlz3ad12-…549bd84   (was lf0ln19z @ bd8ef65)
+carries: 5 — STALE
+build:  ✓ dry-build 33 drvs / 0 fetch
+```
+
+Two observability findings supersede prior rounds:
+
+1. **nv1 IS reachable from the homespace** — `ssh -J root@89.167.46.118
+   root@fd0c:3964:8cda::6e42:b995:2026:deae` (web2 has a `kinq0`
+   mesh route to nv1's ULA *and* a public IPv4 the homespace can SSH
+   to). This is the relay1 replacement that's been there since web2
+   joined the mesh — only the configured `proxyJump = "relay1"`
+   shortcut went away with relay1's decommission. `kin status nv1`
+   stays slow (toplevel `nix build` before compare) but raw
+   `readlink /run/current-system` is sub-second.
+2. **nv1's deployed toplevel is on-main** — `mmr7zsqbsx…` is an
+   exact match for `nixosConfigurations.nv1.config.system.build.toplevel`
+   at origin/main `87a370f`. The off-main warning (d2ad1d1 / 53bed8f)
+   no longer applies; Jonas's gen-26 deploy on May-9 came from a
+   committed origin/main tree. `current != booted` (boot is one
+   gen older) — a `switch-to-configuration switch` without reboot.
+
+Closure mover since bd8ef65: **7f043af** (`grind/bump-lockring-input`
+merge) — `flake.nix` adds `inputs.lockring` + `extraInputs = { inherit
+(inputs) lockring; }`; `kin.nix` adds `services.lockring = { on =
+["nv1"]; sshAgent = true; }`; `flake.lock` adds the lockring node;
+`gen/_policy/_shared/export.cedar` + `gen/manifest.lock` regen.
+nv1's toplevel picks up the lockring nixosModule (per-user secrets
+daemon + opt-in ssh-agent ingress, `LOCKRING_SSH_AUTH_SOCK=1`).
+c070756 + d9ac7f1 are backlog/doc-only — closure-neutral.
+
+Want progression: `lf0ln19z (bd8ef65) → i1sbs5cp (7f043af = d9ac7f1)`.
+
+Runtime spot-check (via web2 jump): one failed unit —
+`llama-swap-socket.service` (`socat … exited 143/n/a`, SIGTERM exit
+not masked). Stopped May-10 00:28 on the unit-restart cascade; benign
+(socat returns 128+15 on TERM and the unit lacks
+`SuccessExitStatus=143`). Unit comes from the `distro` input's
+`llama-swap.nix` — same module as the gemma FOD that needed the
+459f04b override. Not a deploy blocker; worth a `bug-distro-*` if it
+keeps recurring (it predates the lockring delta — in the deployed
+gen-26 closure). Add to the runtime-check list:
+`systemctl status llama-swap-socket.service` after deploy, expect
+`active`, not `failed`.
+
+Externals all <7d (nixpkgs 4d, hm 0d, srvos 2d, nixos-hw 2d,
+nix-index-db 0d, nixvim 4d) — no bump-* to file. gen/ up to date
+(`kin gen --check` passes).
+
+Reconcile: `kin deploy nv1` from a mesh-connected machine (desk),
+or via the web2 jump path above (review SSH continuity per
+`../kin/docs/howto/lockout-recovery.md` first — the lockring change
+adds an ssh-agent socket that does *not* flip `$SSH_AUTH_SOCK`
+yet, so the existing key path stays). Off-main concern is cleared —
+no local delta to preserve. Then walk runtime checks; new check:
+lockring unit active + `ls $LOCKRING_SSH_AUTH_SOCK` exists.
