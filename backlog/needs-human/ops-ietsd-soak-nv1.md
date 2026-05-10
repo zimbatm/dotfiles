@@ -58,3 +58,16 @@ doesn't degrade the daily-driver. Different bars, same falsifier.
 
 Same caveat as web2: passing this means coexist mode is safe on a
 desktop. It does **not** mean `takeover = true`. Don't conflate.
+
+## append @ 2026-05-10: round-trip verified over SSH, soak still pending
+
+Steps 1-2-4 verified from the homespace via SSH:
+- ietsd.service + ietsd.socket active
+- `nix-build '<nixpkgs>' -A hello` via `unix:///nix/var/iets/daemon-socket/socket`
+  == stock daemon: `/nix/store/3pcn0adm…-hello-2.12.3` IDENTICAL
+- journal clean (no panics/errors)
+
+**Step 3 (the soak) still needs a human at the desk** — `NIX_REMOTE=$ALT`
+for a normal session, watching for latency/weirdness on direnv reload,
+`nix develop`, and a non-trivial build. That's a quality judgment about
+the daily-driver, not a protocol check.

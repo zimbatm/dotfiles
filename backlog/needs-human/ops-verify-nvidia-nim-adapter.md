@@ -51,3 +51,21 @@ export ANTHROPIC_MODEL=claude-nvidia
 - `/v1/messages` returns a small model response via NVIDIA NIM.
 - No plaintext NVIDIA key appears in git, logs, or the Nix store.
 - kin builtin `services.llm-adapter` adopted (was local `services/llm-nvidia-adapter.nix`).
+
+## append @ 2026-05-10: verified over SSH — adapter alive, upstream path wrong
+
+Verified from the homespace via SSH (proxyJump→relay1→nv1):
+- ✅ `kin-llm-adapter.service` active
+- ✅ `/health/liveliness` → `"I'm alive!"` (HTTP 200; bind is `[::]:4000`,
+  use `[::1]` not `127.0.0.1`)
+- ✅ API key deployed and works (direct
+  `curl https://integrate.api.nvidia.com/v1/chat/completions` with the
+  key + `minimaxai/minimax-m2.7` returns a real completion)
+- ✅ `minimaxai/minimax-m2.7` is in NVIDIA's `/v1/models` catalog
+- ❌ `/v1/messages` → 404. litellm hits
+  `https://integrate.api.nvidia.com/v1/responses` (the OpenAI-only
+  Responses API) instead of `/chat/completions`. Cross-filed
+  `../kin/backlog/bug-llm-adapter-responses-api-404.md`.
+
+**Blocked on the kin cross-file.** Once it lands and bumps in,
+`kin deploy nv1` then re-run the falsifier.
