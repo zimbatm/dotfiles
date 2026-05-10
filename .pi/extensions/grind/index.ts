@@ -249,7 +249,7 @@ async function allSettledNull<T>(thunks: Array<() => Promise<T>>, log: (msg: str
 }
 
 class GrindRunner {
-  private HOSTS = ["nv1", "relay1", "web2"];
+  private HOSTS = ["nv1", "web2"];
   private round = 0;
   private dryStreak = 0;
   private allCommits: string[] = [];
