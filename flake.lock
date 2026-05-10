@@ -316,11 +316,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778422605,
-        "narHash": "sha256-6upSYoPEjuJ2+p7C8Dx1L7msutGYiGjotMvTbaKMuyo=",
+        "lastModified": 1778451601,
+        "narHash": "sha256-5V9jGUE6Akqn2VXWY4cdIu6ez/I189Ia8jwGkTDnXlQ=",
         "ref": "refs/heads/main",
-        "rev": "6f35b441b44e954e81aed2d244a6f5cfc4752f73",
-        "revCount": 390,
+        "rev": "df3c10a4ff302c1493d098cab4ebea79de1ab079",
+        "revCount": 441,
         "type": "git",
         "url": "ssh://git@github.com/assise/lockring"
       },
