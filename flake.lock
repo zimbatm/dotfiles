@@ -227,11 +227,11 @@
         "settle": "settle"
       },
       "locked": {
-        "lastModified": 1778349362,
-        "narHash": "sha256-uYe96LxgjXCePG0h4DZJPC0uC2z56m0EacrVO6qYJfw=",
+        "lastModified": 1778407668,
+        "narHash": "sha256-Pae/6fi5HP8r4nPVnyRdbXX+S4iWudJqc/uyEAIJVKA=",
         "ref": "refs/heads/main",
-        "rev": "912aad5cf2cb86af058b39e5b9f85af9026ddf99",
-        "revCount": 4877,
+        "rev": "4db2186d3824fe17773aa4e29dcfa5d8188294e6",
+        "revCount": 5058,
         "type": "git",
         "url": "ssh://git@github.com/assise/kin"
       },
@@ -280,11 +280,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1778325199,
-        "narHash": "sha256-IY8UHANLNbMk0L4aqWw3y31PpitXCA3FiD3ghztZvk0=",
+        "lastModified": 1778379306,
+        "narHash": "sha256-HJuIiu5QpLvU9thqJeHLsh5EMWeaS2hEugFpfxaxjKw=",
         "ref": "refs/heads/main",
-        "rev": "70ff91157e85959840e446592ca081a2fe4816da",
-        "revCount": 2253,
+        "rev": "72a7d00a3e5f02f39357b1015d0f0d6b5e1855a6",
+        "revCount": 2323,
         "type": "git",
         "url": "ssh://git@github.com/assise/maille"
       },
@@ -515,11 +515,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1776741231,
-        "narHash": "sha256-k9G98qzn+7npROUaks8VqCFm7cFtEG8ulQLBBo5lItg=",
+        "lastModified": 1778296574,
+        "narHash": "sha256-DVmg1JCjG0VJTa+FF6tH6tkQChaxzK1EzPL98RiRWU0=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "02061303f7c4c964f7b4584dabd9e985b4cd442b",
+        "rev": "1d634a90dffb59ec9ba52652de311b15528c1595",
         "type": "github"
       },
       "original": {

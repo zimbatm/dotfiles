@@ -1,15 +1,16 @@
-# kin-generated — Include this from ~/.ssh/config
-Host nv1 web2 fd0c:3964:8cda::6e42:b995:2026:deae 89.167.46.118
-  IdentityFile ~/.ssh/kin-bir7vyhu_ed25519
-  CertificateFile ~/.ssh/kin-bir7vyhu_ed25519-cert.pub
-  ServerAliveInterval 30
-  ServerAliveCountMax 20
-
-Host nv1
-  HostName fd0c:3964:8cda::6e42:b995:2026:deae
-  User root
-
-Host web2
-  HostName 89.167.46.118
-  User root
-
+# DEPRECATED — kin no longer emits ssh Host blocks here.
+#
+# Hostnames are not unique across fleets; this file's unqualified
+# `Host <machine>` stanzas shadow silently when the operator
+# manages more than one kin repo (arch-ssh-config-namespaced).
+#
+# Replace:   Include <repo>/gen/ssh/_shared/config
+# with ONE:  Include ~/.config/kin/*/ssh-config
+# then run:  kin login <user>
+#
+# That writes ~/.config/kin/bir7vyhu/ssh-config with fid-qualified
+# `Host <machine>.bir7vyhu` blocks (collision-free across fleets).
+# `kin ssh`/`kin deploy` never read either file — they discover
+# the operator cert via ssh_identity().
+#
+# This stub will be removed in a future release.
