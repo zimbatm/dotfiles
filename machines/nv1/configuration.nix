@@ -52,6 +52,23 @@
   };
   boot.enableContainers = true;
 
+  # FIXME(distro): drop once upstream pins HF rev (resolve/<sha> not resolve/main) — upstream issue, not ours to vendor.
+  # distro@385a9fe pins the gemma-4-E2B GGUF via the mutable `resolve/main` HF ref;
+  # unsloth re-uploaded so the FOD hash drifted (rABp68... -> k3i8Rx...) and the nv1
+  # toplevel build fails (dry-run is a false green — FODs only verify on fetch).
+  # The model is a `let` binding inside distro's modules/nixos/llama-swap.nix, not a
+  # pkgs.* attr, so an overlay can't reach it — override the rendered cmd at the option
+  # layer. Reuse llama-server-package so we don't fork distro's accelerated llama-cpp.
+  services.llama-swap.settings.models."gemma4:e2b".cmd =
+    let
+      gemma4-e2b-gguf = pkgs.fetchurl {
+        url = "https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf";
+        hash = "sha256-k3i8RxcQIp7xZXCbYuNL+2IjFCDdr21ynnJzBbW4Zy0=";
+      };
+      llama-server = lib.getExe' config.services.llama-swap.llama-server-package "llama-server";
+    in
+    lib.mkForce "${llama-server} -m ${gemma4-e2b-gguf} --port \${PORT}";
+
   # NVIDIA RTX 4060 Max-Q (Ada / AD107M) for CUDA compute. Open kernel
   # modules — supported on Ada from the 555 series; production (595.58.03)
   # ships the matching userspace and pairs with cudaPackages_13. Display
