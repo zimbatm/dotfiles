@@ -154,8 +154,8 @@ in
     files.password.secret = true;
   };
 
-  # Hetzner Cloud API token for the *personal* project hosting web2 (and
-  # relay1, once re-provisioned). Operator-side only: `kin reconcile` /
+  # Hetzner Cloud API token for the *personal* project hosting web2 and
+  # relay1. Operator-side only: `kin reconcile` /
   # `hcloud server create` from the homespace — never deployed to a
   # machine, hence no `for`. Mirrors kin-infra's gen.hcloud-api-token
   # but a different project/token: kin-infra is the assise org,
