@@ -109,3 +109,63 @@ build.rs that shells out to a `script/*` (patch or feature-flag off).
    minimal subset and either port to nix or feature-flag-off.
 3. Stand up the derivation against a first eval; iterate on system
    libs + `outputHashes` errors.
+
+## round-1 findings
+
+Stood up `packages/openwarp/default.nix` and wired `openwarp = call
+./packages/openwarp;` in `flake.nix`. Not in any host closure — the
+3-host eval+dry-build gate is unchanged.
+
+**Reached:**
+
+- **`app/build.rs` read (next-step #1) — hermetic on Linux.** Sentry,
+  DockTilePlugin, and `script/macos/update_sentry_cocoa` are all
+  macOS-only. The Windows/wasm branches don't fire.
+  `generate_channel_config_if_needed` short-circuits unless
+  `release_bundle` is enabled (it isn't; we build `--features gui`
+  only). On `x86_64-unknown-linux-gnu` `add_features` just emits
+  `cargo:rustc-cfg` lines — no `script/*` shell-out, no patch needed.
+- **Source pinned + hashed.** `fetchFromGitHub` at
+  `b5dd43c4c5f21d60fb9be10378268c22cc6d7095`,
+  `sha256-9dV1WHoac68KLVdOl/Yl2DQysRoBA937hNcU8VYqGdo=`. No submodules.
+- **Cargo.lock vendored locally** (`packages/openwarp/Cargo.lock`,
+  ~400 KB). `cargoLock.lockFile = "${src}/Cargo.lock"` would be IFD —
+  the no-IFD gate (`nix flake check --no-allow-import-from-derivation`,
+  ADR-0011) rejects it. Re-sync on rev bump (see header comment).
+- **`outputHashes` captured.** 22 unique git sources in the lock file
+  (warpdotdev forks of cosmic-text/font-kit/winit/vte/notify/etc., plus
+  servo/core-foundation-rs). Prefetched all 22 with `nix-prefetch-git`;
+  importCargoLock dedupes by commit SHA so one hash per repo covers
+  every sibling crate.
+- **Toolchain: nixpkgs `rustPlatform` as-is.** Upstream pins 1.92.0;
+  nixpkgs ships 1.94.x. No fenix/rust-overlay (denylisted lock-write).
+  No incompatibility surfaced at eval.
+- **Eval + dry-run clean.** `nix eval .#openwarp.drvPath`,
+  `nix build .#openwarp --dry-run`, and the full
+  `nix flake check --no-build --no-allow-import-from-derivation` all
+  pass. iets eval of `nv1` and `web2` toplevels unchanged (only 2
+  kin-managed hosts at present).
+
+**Not yet reached:**
+
+- The actual `nix build .#openwarp` did not finish inside the round
+  budget. The build was started (per-crate vendor unpacking + the
+  `warp` workspace compile, ~1500 crates); it had not failed at time
+  of commit. Round 2 should re-run `nix build .#openwarp -L` and chase
+  whatever the first compile error is.
+
+**Risks for round 2** (likely first failures, in rough order):
+
+- `clang-sys`/bindgen-driven crates may need
+  `rustPlatform.bindgenHook` (`LIBCLANG_PATH`).
+- `gettext-sys`, `ort-sys`, `openh264-sys2`, `cfasttext-sys` are in the
+  lock file. If they're in the `--features gui` graph they'll need
+  `gettext`, ONNX runtime (`ORT_LIB_LOCATION`), `nasm`, and possibly
+  vendored fasttext respectively. They may all be feature-gated off —
+  cargo only builds the active dependency graph, not the lock file.
+- `aws-lc-sys` builds with cmake; covered.
+- Any link errors against `wayland`/`xkbcommon`/`vulkan` →
+  `runtimeDependencies` / `wrapProgram` with `LD_LIBRARY_PATH`.
+- Embedded assets (`rust-embed`) may need the `bun`/`brotli` website
+  pipeline; the item already scopes that out — fail loud, expand only
+  if the binary panics at startup.

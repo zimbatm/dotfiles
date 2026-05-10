@@ -141,6 +141,7 @@
           llm-router = call ./packages/llm-router;
           agent-meter = call ./packages/agent-meter;
           now-context = call ./packages/now-context;
+          openwarp = call ./packages/openwarp;
           pty-puppet = call ./packages/pty-puppet;
           coord-panes = call ./packages/coord-panes;
           man-here = call ./packages/man-here;
