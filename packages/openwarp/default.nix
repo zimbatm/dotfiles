@@ -9,21 +9,11 @@
 #   cp $(nix-prefetch-git https://github.com/zerx-lab/warp <rev> | jq -r .path)/Cargo.lock .
 { pkgs, lib, ... }:
 
-pkgs.rustPlatform.buildRustPackage rec {
-  pname = "openwarp";
-  version = "0-unstable-2026-05-09";
-
-  src = pkgs.fetchFromGitHub {
-    owner = "zerx-lab";
-    repo = "warp";
-    rev = "b5dd43c4c5f21d60fb9be10378268c22cc6d7095";
-    hash = "sha256-9dV1WHoac68KLVdOl/Yl2DQysRoBA937hNcU8VYqGdo=";
-  };
-
+let
   cargoLock = {
     lockFile = ./Cargo.lock;
     # One hash per unique git source (importCargoLock dedupes by commit
-    # SHA, so any one crate per repo carries the hash for its siblings).
+    # SHA, so any one crate per repo covers every sibling crate).
     outputHashes = {
       "command-corrections-0.0.0" = "sha256-dV7UzRxIF5K9TH0lOTONMVhTcEO0VmquWf4AB/k4hA0=";
       "core-foundation-0.10.1" = "sha256-CfGnJgsyUjR0uWfXMOGDjVMkDcjzAD/EwXr6L5FdgqU=";
@@ -51,6 +41,118 @@ pkgs.rustPlatform.buildRustPackage rec {
     };
   };
 
+  # Two warpdotdev git deps have build.rs scripts that read assets from
+  # *outside* the crate's own subdirectory. importCargoLock's git
+  # vendoring extracts only the crate dir, so those assets vanish:
+  #  - `warp_multi_agent_api` scans `CARGO_MANIFEST_DIR/../../` (in-repo:
+  #    `apis/multi_agent/v1/`) for *.proto → "protoc: Missing input file".
+  #  - `warp-workflows` walks `../specs/` (sibling of `workflows/`) for
+  #    *.yaml → "IO error for operation on ../specs: No such file".
+  # Re-fetch each repo at the same rev/hash as the cargoLock pin and
+  # re-attach the missing assets in postPatch.
+  warpProtoApis = pkgs.fetchgit {
+    url = "https://github.com/warpdotdev/warp-proto-apis.git";
+    rev = "78a78f21a75432bf0141e396fb318bf1694e47f0";
+    hash = cargoLock.outputHashes."warp_multi_agent_api-0.0.0";
+  };
+  warpWorkflows = pkgs.fetchgit {
+    url = "https://github.com/warpdotdev/workflows";
+    rev = "793a98ddda6ef19682aed66364faebd2829f0e01";
+    hash = cargoLock.outputHashes."warp-workflows-0.1.0";
+  };
+
+  # The lock file pins two crates with the same name+version from two
+  # different sources — `core-graphics-types 0.2.0` (crates.io vs
+  # servo/core-foundation-rs git) and `difflib 0.4.0` (crates.io vs
+  # warpdotdev/difflib git). importCargoLock vendors every lock entry into
+  # a flat `<name>-<version>` symlink tree, so the second source collides
+  # ("Permission denied" trying to ln *into* the read-only first link).
+  #
+  # Cargo's `vendored-sources` directory source is keyed by name+version
+  # only and all replaced sources funnel into the one directory, so only a
+  # single copy can survive. Force `ln -sfn` so the *last* lock entry —
+  # the git fork — wins:
+  #  - `core-graphics-types` is macOS-only, never compiled here.
+  #  - `difflib`: warp itself calls `SequenceMatcher::real_quick_ratio`,
+  #    which only exists in the warpdotdev fork (E0599 with crates.io).
+  # The crates.io consumers still expect the registry checksum in
+  # `.cargo-checksum.json` ("unable to verify that <crate> is the same as
+  # when the lockfile was generated"). Cargo never re-hashes the vendored
+  # *files* (the `files` map is empty), it only string-compares `package`
+  # against the lock — so materialise the fork content and stamp the
+  # registry checksum onto it.
+  #
+  # Per-crate registry checksums copied verbatim from the [[package]]
+  # entries in ./Cargo.lock — re-check on a Cargo.lock re-sync.
+  duplicateCrateChecksums = {
+    "core-graphics-types-0.2.0" = "3d44a101f213f6c4cdc1853d4b78aef6db6bdfa3468798cc1d9912f4735013eb";
+    "difflib-0.4.0" = "6184e33543162437515c2e2b48714794e37845ec9851711914eec9d308f6ebe8";
+  };
+  cargoDeps =
+    let
+      base = pkgs.rustPlatform.importCargoLock cargoLock;
+      orig = ''ln -s "$crate" $out/$(basename "$crate" | cut -c 34-)'';
+      patched = ''ln -sfn "$crate" "$out/$(basename "$crate" | cut -c 34-)"'';
+      stampOne = name: checksum: ''
+        fork=$(readlink "$out/${name}")
+        rm "$out/${name}"
+        cp -r "$fork" "$out/${name}"
+        chmod -R u+w "$out/${name}"
+        printf '{"files":{},"package":"%s"}' ${lib.escapeShellArg checksum} \
+          > "$out/${name}/.cargo-checksum.json"
+      '';
+    in
+    base.overrideAttrs (old: {
+      buildCommand =
+        (
+          assert lib.assertMsg (lib.hasInfix orig old.buildCommand)
+            "openwarp: importCargoLock vendor-dir script changed; review the duplicate-crate workaround";
+          builtins.replaceStrings [ orig ] [ patched ] old.buildCommand
+        )
+        + lib.concatStrings (lib.mapAttrsToList stampOne duplicateCrateChecksums);
+    });
+in
+
+pkgs.rustPlatform.buildRustPackage rec {
+  pname = "openwarp";
+  version = "0-unstable-2026-05-09";
+
+  src = pkgs.fetchFromGitHub {
+    owner = "zerx-lab";
+    repo = "warp";
+    rev = "b5dd43c4c5f21d60fb9be10378268c22cc6d7095";
+    hash = "sha256-9dV1WHoac68KLVdOl/Yl2DQysRoBA937hNcU8VYqGdo=";
+  };
+
+  inherit cargoDeps;
+
+  postPatch = ''
+    # Upstream gates `mod menu;` to macOS/Windows but ~50 unconditional
+    # call sites still `use crate::menu::…` (E0432 → cascading E0282 type
+    # inference failures). The module itself only depends on cross-platform
+    # warpui/pathfinder helpers, so just compile it on Linux too. The cfg
+    # attribute appears exactly once in app/src/lib.rs (line 48, attached
+    # to `mod menu;`).
+    substituteInPlace app/src/lib.rs --replace-fail \
+      '#[cfg(any(target_os = "macos", target_os = "windows"))]' ""
+
+    # Re-attach warp_multi_agent_api's protos (see warpProtoApis comment) and
+    # point its build.rs at the crate dir instead of `../../` (which after
+    # vendoring would walk back out of the vendor tree into $sourceRoot).
+    cp ${warpProtoApis}/apis/multi_agent/v1/*.proto \
+      "$cargoDepsCopy/warp_multi_agent_api-0.0.0/"
+    substituteInPlace "$cargoDepsCopy/warp_multi_agent_api-0.0.0/build.rs" \
+      --replace-fail \
+        'manifest_dir.parent().unwrap().parent().unwrap()' \
+        'manifest_dir.as_path()'
+
+    # Re-attach warp-workflows' YAML specs (see warpWorkflows comment).
+    # Its build.rs uses the literal relative path `../specs`, which from
+    # the vendored crate dir resolves to a sibling of the crate inside
+    # $cargoDepsCopy — drop them there rather than patching the path.
+    cp -r ${warpWorkflows}/specs "$cargoDepsCopy/specs"
+  '';
+
   # OSS channel only: `warp-oss` is auto-selected when `warp-channel-config`
   # isn't on PATH (script/run + app/build.rs::generate_channel_config_if_needed).
   # No `release_bundle` feature → build.rs skips channel-config embedding and
@@ -72,6 +174,7 @@ pkgs.rustPlatform.buildRustPackage rec {
     jq
     brotli
     perl # openssl-sys vendored build, in case OPENSSL_NO_VENDOR is ignored by a transitive dep
+    rustPlatform.bindgenHook # alsa-sys / aws-lc-sys / libgit2-sys → bindgen → libclang
   ];
 
   buildInputs = with pkgs; [
@@ -80,6 +183,7 @@ pkgs.rustPlatform.buildRustPackage rec {
     expat
     libgit2
     fontconfig
+    gettext # gettext-sys
     alsa-lib # voice_input is pulled in by the `gui` feature
     libxkbcommon
     wayland
