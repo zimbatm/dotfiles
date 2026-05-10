@@ -12,14 +12,16 @@
 
 # dictation_vocab [N]
 #   Print up to N (default 200) bias terms, one per line. Cached per session
-#   under $XDG_RUNTIME_DIR/dictation-vocab.txt and regenerated when older than
-#   1h or empty. `sem-grep vocab` is bounded with `timeout 5` so a cold model
-#   fetch in the sem-grep wrapper can never stall a dictation hotkey. Falls
-#   back to a static seed list when sem-grep is unavailable (relay1/web2 don't
-#   ship it) or its index is cold, so callers always get something.
+#   under $XDG_RUNTIME_DIR (falling back to $XDG_STATE_HOME/dictation, never
+#   /tmp) and regenerated when older than 1h or empty. `sem-grep vocab` is
+#   bounded with `timeout 5` so a cold model fetch in the sem-grep wrapper can
+#   never stall a dictation hotkey. Falls back to a static seed list when
+#   sem-grep is unavailable (relay1/web2 don't ship it) or its index is cold,
+#   so callers always get something.
 dictation_vocab() {
   local n="${1:-200}"
-  local cache="${XDG_RUNTIME_DIR:-/tmp}/dictation-vocab.txt"
+  local cache="${XDG_RUNTIME_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/dictation}/dictation-vocab.txt"
+  mkdir -p "$(dirname "$cache")"
   local mtime now
 
   if [[ -s "$cache" ]]; then

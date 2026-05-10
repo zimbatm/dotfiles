@@ -76,15 +76,19 @@ def log_decision(rec):
 def resolve_local_model(name):
     """Map a request `model` field to a local GGUF path, or None.
 
-    Same resolution order ask-local --serve --model uses: an absolute
-    or .gguf path is taken verbatim if present; bare names are looked
-    up under $XDG_DATA_HOME/llama with and without the .gguf suffix.
+    Path-like requests (containing a separator or ending in .gguf) are
+    realpath'd and only accepted if they stay under $XDG_DATA_HOME/llama;
+    bare names are looked up there with and without the .gguf suffix.
     Returning None means "not ours" -> legacy fixed LOCAL backend.
     """
     if not name or not isinstance(name, str):
         return None
     if (os.sep in name or name.endswith(".gguf")) and os.path.isfile(name):
-        return name
+        real = os.path.realpath(name)
+        real_dir = os.path.realpath(MODEL_DIR)
+        if os.path.commonpath([real, real_dir]) == real_dir:
+            return real
+        return None
     base = os.path.basename(name)
     for cand in (base, base + ".gguf"):
         p = os.path.join(MODEL_DIR, cand)

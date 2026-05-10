@@ -3,11 +3,12 @@
 # Three legs over bench-refs.txt (20 hand-checked symbol queries):
 #   A  sem-grep --mode dense    bge-small on NPU   (current default body leg)
 #   B  sem-grep --mode lexical  FTS5 BM25, no NPU  (sem-grep.py:_fts_backfill floor)
-#   C  ck --hybrid              BM25 + bundled CPU ONNX (no flake input — one-off nix run)
+#   C  ck --hybrid              BM25 + bundled CPU ONNX (llm-agents flake input, pinned to lock rev)
 # Scores file-level recall@5. Run on nv1 only; see backlog/needs-human/adopt-ck-bench-npu-embed.md.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REFS="$HERE/bench-refs.txt"
+ck_rev=$(nix eval --raw --impure --expr '(builtins.fromJSON (builtins.readFile ./flake.lock)).nodes.llm-agents.locked.rev')
 MODEL="${SEM_GREP_MODEL:-${XDG_DATA_HOME:-$HOME/.local/share}/openvino/bge-small-en-v1.5}"
 IFS=: read -ra DIRS <<<"${SEM_GREP_REPOS:-$HOME/src/home:$HOME/src/kin:$HOME/src/iets:$HOME/src/maille:$HOME/src/meta}"
 
@@ -29,7 +30,7 @@ while IFS=$'\t' read -r q exp; do
   [[ "$q" =~ ^#|^$ ]] && continue; Q=$((Q+1))
   a=$(sem-grep query -n 5 --mode dense   "$q" 2>/dev/null | r5 "$exp")
   b=$(sem-grep query -n 5 --mode lexical "$q" 2>/dev/null | r5 "$exp")
-  c=$(nix run github:numtide/llm-agents.nix#ck -- --hybrid --top-k 5 "$q" "${DIRS[@]}" 2>/dev/null | r5 "$exp")
+  c=$(nix run "github:numtide/llm-agents.nix?rev=${ck_rev}#ck" -- --hybrid --top-k 5 "$q" "${DIRS[@]}" 2>/dev/null | r5 "$exp")
   printf '%-22s %7s %7s %7s\n' "$q" "$a" "$b" "$c"
   SUM[A]=$(awk -v x="${SUM[A]}" -v y="$a" 'BEGIN{print x+y}'); SUM[B]=$(awk -v x="${SUM[B]}" -v y="$b" 'BEGIN{print x+y}'); SUM[C]=$(awk -v x="${SUM[C]}" -v y="$c" 'BEGIN{print x+y}')
 done <"$REFS"
