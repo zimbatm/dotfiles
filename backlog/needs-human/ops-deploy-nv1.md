@@ -291,3 +291,24 @@ from the homespace at all. **Deploy is local-only**: `kin deploy nv1`
 from nv1 itself, or Jonas at the desk per `feedback_deploy_scope`. The
 "recover relay1 first" precondition is moot. The kin-infra peer-fleet
 mesh path (hcloud-07 builder ULA) is independent of relay1 and remains.
+
+### drift @ 5d4d6b3 (2026-05-10)
+
+```
+have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
+want: /nix/store/3cyxaj1qwflb52zx2vi7qdiay1aj7arw-…549bd84   (was mmr7zsqbsx @ 5e01750)
+```
+
+Two lock-bump commits since 5e01750, both flake.lock-only: `5decc79`
+(iets `4d7f54b7→751471a8` + llm-agents `c7419130→7f0cb51f`) and
+`5b3e8e1` (nix-index-database `dd2d0e3f→01466c41`). All three inputs
+are in nv1's home/desktop closure — toplevel moves
+`mmr7zsqbsx→3cyxaj1q`. `28b5a56` (relay1 sweep) is doc/CI-config only,
+no eval delta. Want progression appended to the table above.
+
+Dry-build PASS: nv1 486 drvs / 1230 fetch / 4.3 GiB (unchanged from
+5e01750 — same drv count, fetch payload stable).
+
+Externals all <7d among the named set (nixpkgs 5.2d, hm 1.8d, srvos
+3.3d, nixos-hw 3.1d, nix-index-db 0.2d, nixvim 4.8d) — no bump-* to
+file this round. nv1 still not-on-mesh; reconcile is local-only.

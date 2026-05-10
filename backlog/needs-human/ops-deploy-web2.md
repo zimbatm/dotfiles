@@ -56,3 +56,26 @@ carries grew 1→13 across f5bd72e, 778e7b8, dde1472, 1cb22af, a73c579,
 acme-order-renew fixed; restic-gotosacial split out to
 ops-web2-restic-rsyncnet.md; relay1 retired @ dc78daf). Prior
 restructure @ b236e97 (META r1, 2026-04-24). -->
+
+### drift @ 5d4d6b3 (2026-05-10)
+
+```
+have: /nix/store/kjiq55xlnipwssavflkz9isq3zhxwpgq-…549bd84   (gen-26, May-9)
+want: /nix/store/q433p0x76a4nxqqvqf48izzf9lbx17ld-…549bd84   (was kjiq55xl @ 5e01750)
+carries: 1 — STALE again (1 day after gen-26 reconverge)
+```
+
+Closure mover: **5decc79** (iets `4d7f54b7→751471a8` + llm-agents
+`c7419130→7f0cb51f`). web2 runs `ietsd` (rollout-stage-1 PASS above), so
+the iets bump moves the server toplevel. Note: the r4 bumper meta
+(5d4d6b3) said "web2 unchanged (no nix-index-db in server closure)" —
+that justification is correct for `5b3e8e1` only; it overlooked that
+`5decc79` *does* touch web2 via ietsd. Drift confirms the eval delta.
+
+Dry-build PASS: web2 21 drvs to build, no fetch listed (substituted).
+`kin status` health: degraded — `restic-backups-gotosocial.service`
+still failing (tracked in `ops-web2-restic-rsyncnet.md`, not config
+drift). Uptime 0d13h — not rebooted since gen-26 deploy May-9 ~21:06.
+
+Reconcile: `kin deploy web2`. Then re-walk the unverified runtime
+checks above (pin-nixpkgs, attest identity).
