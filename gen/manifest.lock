@@ -155,6 +155,15 @@
       },
       "inputHash": "1f6fac16216f1dd2ff372d42944693eac188c321986a32a08bc325b706336b2e"
     },
+    "user/hcloud-api-token/_shared": {
+      "ageHash": {
+        "env": "c38eda28c4e2dbe6acf5845bb29b9d6554141fa3b6025f23bf096a0f4a8641dc"
+      },
+      "files": {
+        "env": "a2a5a998b23fb49ba21c322fc87abd50f78fad57cc606f0aaf27f27a4855c5ca"
+      },
+      "inputHash": "67e2a5c87ccfe9caa259cd2bf9fb6c6ed20670f7829bfe62f9bfcd7d34a0262b"
+    },
     "users/password-claude/_shared": {
       "ageHash": {
         "hash": "f530fae0910d05e70d29aaaa3956adc575481840f3d5f16095ed493244cd7f23",
