@@ -53,7 +53,7 @@
           "lockring",
           "nixpkgs"
         ],
-        "systems": "systems_4"
+        "systems": "systems_5"
       },
       "locked": {
         "lastModified": 1776249299,
@@ -131,14 +131,15 @@
         "opencrow": "opencrow",
         "treefmt-nix": [
           "treefmt-nix"
-        ]
+        ],
+        "voxtype": "voxtype"
       },
       "locked": {
-        "lastModified": 1777498486,
-        "narHash": "sha256-tGORLfHGffxBGut7C4Aojp3VApAZ2+YLqD7DhGSrkzw=",
+        "lastModified": 1778275604,
+        "narHash": "sha256-pr0BIONzp6T5b9duR+rMXJ45MJowWk9sp0hTkbvCnNY=",
         "owner": "generational-infrastructure",
         "repo": "distro",
-        "rev": "385a9fe938a8fe5d93a9e39bca5672b9c55bd09c",
+        "rev": "a80828ae389ca27a5f35c37bdd44e2e8fb8726fd",
         "type": "github"
       },
       "original": {
@@ -165,6 +166,24 @@
       "original": {
         "owner": "hercules-ci",
         "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems_3"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
         "type": "github"
       }
     },
@@ -199,11 +218,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778410997,
-        "narHash": "sha256-Gw9JVMBDzoEMEtZkzC2z3cHX+71d5YySxuO/FYrH8R8=",
+        "lastModified": 1778421632,
+        "narHash": "sha256-hlWMNlicJrfOLenBWKLFO5qzO82ccKCpVRGxyUvA1bU=",
         "ref": "refs/heads/main",
-        "rev": "42fa90c137469c82d6fe008600b132e6e395855a",
-        "revCount": 8385,
+        "rev": "64da152c65a49eee3d5d5ffc3d0a87b26b96992c",
+        "revCount": 8411,
         "type": "git",
         "url": "ssh://git@github.com/jonasc-ant/iets"
       },
@@ -249,11 +268,11 @@
         "settle": "settle"
       },
       "locked": {
-        "lastModified": 1778412509,
-        "narHash": "sha256-WkBn3/wV6rTHbIQjrcmVESL4u8YwQLTLTKDwroyVihw=",
+        "lastModified": 1778422371,
+        "narHash": "sha256-F8ZJiNag9B6GmWSOeDGWqEOHrAGbiS1uvpVgtMm9hIo=",
         "ref": "refs/heads/main",
-        "rev": "fb13c282b18751e94003eafd89e771396d609d49",
-        "revCount": 5073,
+        "rev": "a656d2ac0c191ab739b60515c2d8d6040fa0cf82",
+        "revCount": 5109,
         "type": "git",
         "url": "ssh://git@github.com/assise/kin"
       },
@@ -270,7 +289,7 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "systems": "systems_3",
+        "systems": "systems_4",
         "treefmt-nix": [
           "treefmt-nix"
         ]
@@ -297,11 +316,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778412776,
-        "narHash": "sha256-RvbO4qZT+OiYYyxKR6zR/Ckp2slatdBGcelTabw+kyI=",
+        "lastModified": 1778422605,
+        "narHash": "sha256-6upSYoPEjuJ2+p7C8Dx1L7msutGYiGjotMvTbaKMuyo=",
         "ref": "refs/heads/main",
-        "rev": "f999b8da410f7ab07f1963b89ac560bcda24eb51",
-        "revCount": 359,
+        "rev": "6f35b441b44e954e81aed2d244a6f5cfc4752f73",
+        "revCount": 390,
         "type": "git",
         "url": "ssh://git@github.com/assise/lockring"
       },
@@ -473,11 +492,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1777380063,
-        "narHash": "sha256-q5mWOEICcZzr+KnjIwDHV9EXiBxOC9cnBpxZbDAViU8=",
+        "lastModified": 1775957204,
+        "narHash": "sha256-d4CVRtAty2GzDYXx4xYQmR+nlOjjKovyprQfZhgLckU=",
         "owner": "noctalia-dev",
         "repo": "noctalia-qs",
-        "rev": "8742a7a748c43bf44eb6862a8ebd3591ed71502d",
+        "rev": "68e82fe34c68ee839a9c37e3466820e266af0c86",
         "type": "github"
       },
       "original": {
@@ -495,15 +514,16 @@
         "noctalia-qs": "noctalia-qs"
       },
       "locked": {
-        "lastModified": 1777427472,
-        "narHash": "sha256-kqcfLdxb+CqTroMErCScvx6YQcZYJcf6X+z5I8kBJK8=",
+        "lastModified": 1776239934,
+        "narHash": "sha256-oGMYWsP0qthxQisirZc/r/vpdGTZrInwkh75AC714AE=",
         "owner": "noctalia-dev",
         "repo": "noctalia-shell",
-        "rev": "9f8dd48c8df5ab1f7f87ddf9842627e1e5682186",
+        "rev": "d85ad414baffd12ea6cf4c88ae5def8e96ec3753",
         "type": "github"
       },
       "original": {
         "owner": "noctalia-dev",
+        "ref": "v4.7.6",
         "repo": "noctalia-shell",
         "type": "github"
       }
@@ -520,11 +540,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1777473749,
-        "narHash": "sha256-BsQCPY2koxaGahPHAd2eo2KgTAA0Rlh9tFkzEmNdh0c=",
+        "lastModified": 1777579777,
+        "narHash": "sha256-jwHDgDe5CLncnOly3mgh/xDYbh5QYHnufA+fmmP0Rvw=",
         "owner": "pinpox",
         "repo": "opencrow",
-        "rev": "2815f11f22261888f88026582486146ac652e0c7",
+        "rev": "d83140d2e38c1f7dd3d49c80a4e9cf09841dffd6",
         "type": "github"
       },
       "original": {
@@ -679,6 +699,21 @@
         "type": "github"
       }
     },
+    "systems_5": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
     "treefmt-nix": {
       "inputs": {
         "nixpkgs": [
@@ -763,6 +798,28 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "voxtype": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "distro",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1776651662,
+        "narHash": "sha256-HMiN4cmXRr6avHiH6asF28w9/N+qjeYSvX9zAATVXss=",
+        "owner": "peteonrails",
+        "repo": "voxtype",
+        "rev": "adf0ea62c2310b90c55febdc6515cca9f264e25a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "peteonrails",
+        "repo": "voxtype",
         "type": "github"
       }
     }
