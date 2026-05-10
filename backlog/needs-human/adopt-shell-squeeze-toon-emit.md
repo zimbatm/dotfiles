@@ -77,3 +77,40 @@ The `toon` CLI from llm-agents.nix could be used as a *reference
 oracle* in the test (encode same input both ways, diff token counts) —
 but only via `nix run github:numtide/llm-agents.nix#toon` as a one-off
 in a bench script, never as a flake input (denylist).
+
+## Status: implemented — bench-watch (needs-human)
+
+Landed on `grind/adopt-shell-squeeze-toon-emit` (base `3603dcd`):
+
+- `packages/shell-squeeze/toon-emit.py` — stdlib-only encoder, two
+  shapes + strict pass-through; quotes scalars containing `,:\n"{}[]`;
+  refuses to "win" if the TOON form is not strictly smaller than the
+  input (guards against flat/noisy shapes that fold worse than JSON).
+- `packages/shell-squeeze/default.nix` — `_toon` helper in the prelude;
+  `nix --json` (eval and friends), new `kin` and `jq` shims pipe through
+  it. Guarded by `[ -p /dev/stdout ]`: when stdout is a pipe (i.e.
+  `nix eval --json | jq ...`), the shim execs the real binary unwrapped
+  so downstream JSON consumers never see TOON. Verified the agent
+  capture context presents fd 1 as a regular file, not a FIFO, so the
+  encode still fires for the leaf-call case that matters.
+- Hint emitted to stderr only when the encoder actually rewrote.
+
+### Bench plan (needs-human / next 10 rounds)
+
+`agent-meter` already records per-round token counts under
+`refs/notes/tokens`. After this branch merges and `nv1`/`web2` redeploy
+agentshell:
+
+1. Let the next 5 grind rounds run with the TOON shims live (default).
+2. Run 5 more with `SHELL_SQUEEZE=0` exported in the round wrapper (or
+   the `agentshell` env) to disable the encode while keeping line caps.
+3. Compare `med_billable` across the two windows on roles that touch
+   `nix eval --json` / `kin opts --json` / `jq` (drift, bumper, scout):
+   - ≥ 10 % drop, zero decode failures in round logs → keep + file
+     `../kin/backlog/adopt-agentshell-toon.md` to upstream.
+   - < 10 % → revert shims, move this file to `wontfix/` with the
+     measured number.
+   - any `jq: error ... is not valid JSON` traced to a shim → immediate
+     revert (the `[ -p /dev/stdout ]` guard failed somewhere).
+
+Until then this stays in `needs-human/` so triage doesn't re-pick it.
