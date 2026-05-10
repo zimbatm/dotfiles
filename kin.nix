@@ -109,13 +109,17 @@ in
   services.attest.keyName = "attest.ztm-1";
 
   # ietsd rollout stage-1 (kin docs/howto/rollout-ietsd.md): coexist on
-  # one canary. takeover=false → alt socket /nix/var/iets/daemon-socket/
+  # canaries. takeover=false → alt socket /nix/var/iets/daemon-socket/
   # alongside nix-daemon; opt in per-shell with NIX_REMOTE=unix://… to
-  # soak. kin-infra is at stage-2 (3 builders coexist, kin-infra@kin.nix:245);
-  # web2 starts here as the always-on box. Widen to nv1 once a routine
-  # `nix-build -A hello` via the alt socket round-trips clean.
+  # soak. kin-infra is at stage-2 (3 builders coexist, kin-infra@kin.nix:245).
+  # web2 alt-socket round-trip verified 2026-05-10: `nix-build -A hello`
+  # via ietsd == stock daemon, journal clean (ops-ietsd-soak-web2 passed).
+  # nv1 widened on that gate; soak per ops-ietsd-soak-nv1.md before stage-2.
   services.ietsd = {
-    on = [ "web2" ];
+    on = [
+      "web2"
+      "nv1"
+    ];
     takeover = false;
   };
 
