@@ -1,8 +1,9 @@
-# web2: post-deploy runtime checks (CONVERGED gen-25; relay1 gen-16)
+# web2: post-deploy runtime checks (CONVERGED gen-26 @ 87a370f, May-10)
 
 **What:** Walk the remaining runtime checks below on web2, then delete
-this file. Deploy itself is **done** — web2 + relay1 both human-deployed
-Apr-24 20:06 batch @ fcc6b68-tip and CONVERGED.
+this file. Deploy itself is **done** — web2 human-deployed gen-26
+May-9 ~20:44 + reboot ~21:06, CONVERGED at 87a370f. Drifted gen-25
+(Apr-24 → May-9, carries reached 13) is history; relay1 retired.
 
 **Blockers:** Human-gated. Non-root probe (kin-bir7vyhu) covers
 service-level (0 failed units verified by drift); the unchecked items
@@ -432,3 +433,48 @@ relay1 decommissioned (Jonas; iroh underused) — removed from `kin.nix`,
 `machines/`, `gen/`, `keys/`. The "recover relay1" half of the
 reconcile is moot; `ops-relay1-recover.md` deleted. Reconcile is now
 just `kin deploy web2`. relay1 history above retained for the record.
+
+### drift @ 87a370f (2026-05-10) — web2 RECONVERGED gen-26
+
+**web2 deployed and rebooted.** Human-deployed gen-26 May-9 ~20:44
+(profile linked 20:44, `system→26-link` flipped 20:59, host rebooted
+~21:06 per `up 11:07` at 08:13 probe). Booted system == current system
+== want at origin/main HEAD (87a370f, last 2 commits backlog-only):
+
+```
+web2:  have kjiq55xlnipwssavflkz9isq3zhxwpgq…549bd84 (gen-26, May-9)
+       want kjiq55xlnipwssavflkz9isq3zhxwpgq…549bd84 (87a370f)
+       carries 0 — CONVERGED
+nv1:   not-on-mesh                                  want mmr7zsqbsx…549bd84
+```
+
+13 carries flushed in one deploy. Dry-build web2 0/0/0 (already in
+local store). nv1 dry-build 486 drvs / 1245 fetch / 4.3 GiB (was
+542/1279/4.4G — fetches landed).
+
+Failed units **2 → 1**:
+
+- `acme-order-renew-gts.zimbatm.com.service` — **FIXED.** Fired
+  post-deploy May-9 21:05 and May-10 07:02, both `status=0/SUCCESS`;
+  cert valid until 2026-07-07. Root cause never confirmed (deploy +
+  reboot cleared whatever broke pre-start), but the falsifier passed.
+  `ops-web2-acme-renew.md` DELETED this round.
+- `restic-backups-gotosocial.service` — **still failing**, hourly,
+  every cycle in journal window. Survived gen-26 deploy + reboot, so
+  it's not a config-staleness issue. Pre-start dies on
+  `Fatal: unable to open repository at sftp:zh6422@zh6422.rsync.net:gotosocial:
+  unable to start the sftp session, error: error receiving version
+  packet from server: server unexpectedly closed connection: unexpected
+  EOF` — sshpass auth to rsync.net is being rejected (server closes
+  before SFTP negotiates). Filed `ops-web2-restic-rsyncnet.md`.
+
+Spot-checks (re-probed @ gen-26): /48 route PASS, ca-derivations PASS,
+cache.assise PASS, `@cert-authority` 1 entry, **ietsd ACTIVE +
+`/nix/var/iets/daemon-socket/socket` present** (rollout-stage-1 from
+`services.ietsd.on=[web2]` is live — first probe since the option
+landed). attest identity unverified (non-root).
+
+Externals all <7d (nixpkgs 5.1d, hm 1.8d, srvos 3.2d, nixos-hw 3.0d,
+nix-index-db 1.8d, nixvim 4.7d) — no new bump-* filed.
+
+Reconcile remaining: `kin deploy nv1` (mesh access required).

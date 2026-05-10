@@ -6,10 +6,9 @@ the deferred runtime checks below.
 **Blockers:** Human-gated (CLAUDE.md). Worker identity RESTORED
 (kin-bir7vyhu @ 139c681 self-heal) but nv1 reports `not-on-mesh` —
 desktop offline or off the maille mesh from this homespace. `kin ssh
-nv1` fails (mesh ULA fd0c:…deae unroutable); gen/ssh `ProxyJump
-root@95.216.188.155` also fails (proxy leg matches literal IP not `Host
-relay1` stanza, so kin-bir7vyhu cert doesn't apply). HAVE unprobeable
-for mesh-reachability not identity.
+nv1` fails (mesh ULA fd0c:…deae `Network is unreachable`). The
+relay1 ProxyJump fallback is gone — relay1 decommissioned @ dc78daf
+(2026-05-09). HAVE unprobeable for mesh-reachability not identity.
 
 **⚠ Off-main `have`:** nv1 has been deployed from a dirty/off-branch
 tree **twice** (d2ad1d1: `gfcs7jg5` matched no origin/main eval;
@@ -20,20 +19,26 @@ but nv1 was NOT in that batch (off-mesh from homespace) — if Jonas
 deployed nv1 locally at the same time it'd be at 77dfr1xn; otherwise
 sxmv9yvi carry-forward stays suspect.
 
-## Latest status (drift @ 6753fd8, 2026-05-09)
+## Latest status (drift @ 87a370f, 2026-05-10)
 
 ```
-have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
-want: /nix/store/mbw1f3pr…-nixos-system-nv1-26.05.20260505.549bd84
+have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
+want: /nix/store/mmr7zsqbsx…-nixos-system-nv1-26.05.20260505.549bd84
 ```
 
 Want progression since fcc6b68 (Apr-24): 77dfr1xn → 1mdzqizi (e960caf) →
 n5smybmw (671f35b) → zi5as60q (e3c1cea) → 8l90l7hx (8231b3d) → qjdsdd97
 (23975b3) → rsb8r0kg (9def97e) → 53s3xn5k (cce49ee) → isgj6yg9 (80a9212)
-→ mbw1f3pr (6753fd8). Dry-build 542 drvs / 1279 fetch / 4.4 GiB.
+→ mbw1f3pr (6753fd8) → **mmr7zsqbsx (87a370f)**. Closure-affecting since
+6753fd8: dc78daf (relay1 removal), 81fad96 / e166eac / f2a3653 / 231d9ff
+/ c917b09 (gnome-keyring + signal libsecret churn), fb08d11 (fmt), 05b2e2c
+(kin bump for tab-indent fix). Dry-build 486 drvs / 1245 fetch / 4.3 GiB
+(was 542/1279/4.4G).
 Last confirmed have==want on origin/main: `www09p3bx` @ 9403a95
-(≈ e196255 deploy, 2026-04-11). nv1 unprobeable since — relay1 ProxyJump
-leg dead (`ops-relay1-recover.md`).
+(≈ e196255 deploy, 2026-04-11). nv1 unprobeable since (mesh; relay
+gone). **Note:** Jonas was active locally on May-9 (deployed web2
+gen-26 ~20:44 + reboot ~21:06) — likely also deployed nv1 from the
+desk; ask before assuming carries are still 12+.
 
 ## Reconcile
 
