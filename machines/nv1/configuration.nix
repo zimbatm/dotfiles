@@ -88,6 +88,9 @@
       "gemma4:e2b".cmd = "${llama-server} -m ${gemma4-e2b-gguf} --port \${PORT}" + modelArgs "gemma4:e2b";
     };
 
+  # locksmith workaround
+  users.users.zimbatm.extraGroups = [ "tss" ];
+
   # NVIDIA RTX 4060 Max-Q (Ada / AD107M) for CUDA compute. Open kernel
   # modules — supported on Ada from the 555 series; production (595.58.03)
   # ships the matching userspace and pairs with cudaPackages_13. Display
