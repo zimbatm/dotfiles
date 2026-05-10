@@ -43,6 +43,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.blueprint.follows = "llm-agents/blueprint";
     };
+    # lockring is a blueprint flake — nixosModules.lockring resolves from
+    # modules/nixos/lockring.nix. Wired into kin via mkFleet extraInputs
+    # below; kin's services/lockring.nix throws on first nixos build if
+    # services.lockring is declared without this input.
+    lockring = {
+      url = "git+ssh://git@github.com/assise/lockring";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     distro = {
       url = "github:generational-infrastructure/distro";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -158,6 +166,10 @@
         config = import ./kin.nix;
         nixpkgsConfig.allowUnfree = true;
         specialArgs = { inherit inputs; };
+        # Downstream-supplied flake input for kin's services/lockring.nix
+        # wrapper (Track L). Without it the kin module throws on the
+        # first nixos build for any host with services.lockring declared.
+        extraInputs = { inherit (inputs) lockring; };
         devShell.systems = [
           "x86_64-linux"
           "aarch64-linux"
