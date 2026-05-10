@@ -142,4 +142,20 @@ in
     perMachine = false;
     files.password.secret = true;
   };
+
+  # Hetzner Cloud API token for the *personal* project hosting web2 (and
+  # relay1, once re-provisioned). Operator-side only: `kin reconcile` /
+  # `hcloud server create` from the homespace — never deployed to a
+  # machine, hence no `for`. Mirrors kin-infra's gen.hcloud-api-token
+  # but a different project/token: kin-infra is the assise org,
+  # this is zimbatm's personal project. Set with:
+  #   kin set user/hcloud-api-token/_shared/env
+  # Format the value as `HCLOUD_TOKEN=...` so it can be sourced directly.
+  gen.hcloud-api-token = {
+    perMachine = false;
+    files.env = {
+      secret = true;
+      external = true;
+    };
+  };
 }
