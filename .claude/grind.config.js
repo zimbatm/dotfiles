@@ -10,7 +10,7 @@ export const meta = {
   ],
 }
 
-const HOSTS = ['nv1', 'web2']
+const HOSTS = ['nv1', 'relay1', 'web2']
 
 const CONFIG = {
   name: 'home',
@@ -26,7 +26,7 @@ const CONFIG = {
   treeGuard: `[[ -f ~/.ssh/kin-bir7vyhu_ed25519 ]] || \\
   { [[ -f ~/.ssh/kin-infra_ed25519 ]] && kin login claude --key ~/.ssh/kin-infra_ed25519 >&2; } || \\
   echo "treeGuard: home-fleet identity absent, self-heal key missing — drift will be UNPROBEABLE" >&2`,
-  // checks.x86_64-linux = {fmt, nv1, web2}; --no-build = eval-only (dry-build parity).
+  // checks.x86_64-linux = {fmt, nv1, relay1, web2}; --no-build = eval-only (dry-build parity).
   // ~21s vs ~23s for the old per-host loop — single process shares the nixpkgs import.
   // iets step: `kin deploy` evals via iets which bans IFD (ADR-0011 → IETS-0025); plain
   // nix allows it, so flake check alone green-lights changes that break deploy

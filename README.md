@@ -8,10 +8,9 @@ Jonas's personal machines, deployed with [`../kin`](../kin) over the [`../maille
 |---|---|---|---|
 | `nv1` | `fd0c:3964:8cda::…:deae` (mesh ULA) | desktop | NAT'd; reachable via maille only |
 | `web2` | 89.167.46.118 | server | hetzner-cloud; runs gotosocial |
+| `relay1` | 37.27.251.231 | server, relay | hetzner-cloud; the maille relay |
 
-All kin-managed machines are on the `ztm` identity domain. The maille mesh is
-on but has no own relay (relay1 retired 2026-05); mesh reachability comes from
-the kin-infra peer-fleet path.
+All kin-managed machines are on the `ztm` identity domain and the maille mesh.
 
 ## Layout
 

@@ -46,6 +46,20 @@
       },
       "inputHash": "ab14ba4351a25567bc13e505434b48042e58d0754edeb03ca44cf0bfe266cba3"
     },
+    "identity/machine/relay1": {
+      "ageHash": {
+        "attest.key": "9138c8adbfaa7bdbf871e6c910c6b0dfd8aaf10d3d08656e661bc8aae18d7e85",
+        "ssh-host": "e994d5d1516cd8178648babdff95eacb942117b670bb6439d65513f304a8d568",
+        "tls.key": "a39e82790cdae25221e323103b7fc775f26e092cdf3e83588dc0a4b167af8f9e"
+      },
+      "depFilesHash": "6b8eb30a998d6266d01318d86c4facc62cabb0a1dd16353b6feb6629341a353d",
+      "files": {
+        "attest.key": "9d96fb64a7ebd236633e9ce28247b047929e6f4d63b45b456821a1133644196b",
+        "ssh-host": "9d96fb64a7ebd236633e9ce28247b047929e6f4d63b45b456821a1133644196b",
+        "tls.key": "9d96fb64a7ebd236633e9ce28247b047929e6f4d63b45b456821a1133644196b"
+      },
+      "inputHash": "0a38fb0f323b934aed76adc957536cbadb9b835024e563b07f36b3f45271710c"
+    },
     "identity/machine/web2": {
       "ageHash": {
         "attest.key": "5bfb86365647123afd3fe5bca62fc9d84df0c4f2a75cc8ed497a9477a277a46d",
@@ -108,13 +122,13 @@
       "ageHash": {},
       "depFilesHash": "6b8eb30a998d6266d01318d86c4facc62cabb0a1dd16353b6feb6629341a353d",
       "files": {},
-      "inputHash": "998b675dad009d1f5b21afb9e486aae821ec6add9a04c10846468ded5f7c5af8"
+      "inputHash": "306d52aefc71558f8810a85b6663b01edb6fd22fa0a96c34c5917081291567e4"
     },
     "identity/user-zimbatm/_shared": {
       "ageHash": {},
       "depFilesHash": "6b8eb30a998d6266d01318d86c4facc62cabb0a1dd16353b6feb6629341a353d",
       "files": {},
-      "inputHash": "e82c5d902a58e54487ddd4c482e98b3d64970b81095ce4f1470b267f65eb1cc4"
+      "inputHash": "35d55fe74df549b4c48692953537351661d4dacda05680ef2097934fe660d7b5"
     },
     "llm-adapter/api-key/_shared": {
       "ageHash": {
@@ -127,9 +141,9 @@
     },
     "mesh/fingerprints/_shared": {
       "ageHash": {},
-      "depFilesHash": "b004b13575eb7e29722cf1e165f8a121724e7f5d247d27a54236e5f6d92177cb",
+      "depFilesHash": "96efc19c11f62bd6ef3f8702733a7e2cf043a425a2b063d3bd1036b1b6bfc259",
       "files": {},
-      "inputHash": "7ed2daacbb9e2d959b1b58600171929536b0c8a07da52a15ec35d6d44bca5468"
+      "inputHash": "8e82129efbaad334c7f507022d81f2c8e93ddef292fc5e4c96280cd16be85022"
     },
     "ssh/_shared": {
       "ageHash": {},

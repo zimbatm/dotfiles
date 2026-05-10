@@ -35,6 +35,7 @@ in
   machines = {
     nv1 = {
       host = "fd0c:3964:8cda::6e42:b995:2026:deae";
+      proxyJump = "relay1";
       tags = [ "desktop" ];
       profile = "none";
       stateVersion = "23.05";
@@ -42,6 +43,17 @@ in
     web2 = {
       host = "89.167.46.118";
       tags = [ "server" ];
+      profile = "hetzner-cloud";
+      stateVersion = "26.05";
+    };
+    relay1 = {
+      # Re-provisioned 2026-05-10: cpx22@hel1, fresh identity (old VM and
+      # soft host key both gone since dc78daf). hcloud server id 130258147.
+      host = "37.27.251.231";
+      tags = [
+        "server"
+        "relay"
+      ];
       profile = "hetzner-cloud";
       stateVersion = "26.05";
     };
@@ -61,8 +73,7 @@ in
     peers.kin-infra.net = "fdc5:e1a6:b03f";
   };
   services.mesh.on = [ "all" ];
-  # No own relay since relay1 was decommissioned (2026-05-09; iroh underused).
-  # Mesh stays on for the kin-infra peer-fleet path → hcloud-07 builder ULA.
+  services.mesh.relay = [ "relay1" ];
   # Reachability half of identity.peers.kin-infra (kin@a8d56b76, maille@eaefaae).
   # hcloud-01 is kin-infra's ingress host; port 7850 is the kin default.
   services.mesh.peerFleets.kin-infra.seeds = [ "5.75.246.255:7850" ];
