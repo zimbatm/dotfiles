@@ -312,3 +312,52 @@ Dry-build PASS: nv1 486 drvs / 1230 fetch / 4.3 GiB (unchanged from
 Externals all <7d among the named set (nixpkgs 5.2d, hm 1.8d, srvos
 3.3d, nixos-hw 3.1d, nix-index-db 0.2d, nixvim 4.8d) — no bump-* to
 file this round. nv1 still not-on-mesh; reconcile is local-only.
+
+### drift @ 3603dcd (2026-05-10) — ⚠ DEPLOY-BLOCKED (FOD hash mismatch)
+
+```
+have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
+want: /nix/store/qh011y8zifqk5s848vcc51dq451cad74-…549bd84   (was 3cyxaj1q @ 5d4d6b3)
+build: ✗ FAILS — fixed-output hash mismatch in gemma-4-E2B-it-Q4_K_M.gguf
+```
+
+Closure mover since 5d4d6b3: **e22951a** (kin `912aad5c→4db2186d`,
+builder-cert regen — `gen/identity/machine/nv1/builder-cert.pub`,
+`gen/ssh/_shared/config`, user certs). Want
+`3cyxaj1q→qh011y8z`.
+
+**New deploy-blocker found this round.** The toplevel **eval/dry-build
+passes** (374 drvs to build, 0 fetch — substitutes pre-fetched into
+the homespace store from a prior full-build attempt) but the actual
+`nix build` fails:
+
+```
+error: hash mismatch in fixed-output derivation
+       '/nix/store/s7dg1njs6kw8q3qp54lqn03ssi2p0mc0-gemma-4-E2B-it-Q4_K_M.gguf.drv':
+  specified: sha256-rABp68zTmSXYNvJKiMDwyFjSBXjCmyGrfO3OZu5XaEU=
+       got:  sha256-k3i8RxcQIp7xZXCbYuNL+2IjFCDdr21ynnJzBbW4Zy0=
+```
+
+Source: `distro` flake input (`generational-infrastructure/distro`
+@ 385a9fe9), `modules/nixos/llama-swap.nix:35-37`. The model file at
+`https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf`
+was re-uploaded upstream — the URL points at `main` (a mutable ref),
+so the fetchurl hash drifted under us. The 3.0 GB file with the new
+hash is already in the homespace store
+(`/nix/store/jakmd1zznwjkynvsbw5x5s87f4cb90zf-gemma-4-E2B-it-Q4_K_M.gguf`,
+flat sha256 = the "got" hash above), so this isn't a network glitch.
+
+Reaches the toplevel via `services.opencrow-local.enable = true`
+(`machines/nv1/configuration.nix:49`) → distro's `opencrow.nix` →
+`llama-swap.nix` → `pkgs.fetchurl` for the gemma model →
+`unit-llama-swap.service` → `etc-json` → `nixos-system-nv1`.
+
+**This blocks `kin deploy nv1` even when nv1 comes back on mesh.**
+The grind eval+dry-build gate does NOT catch this (FOD hashes are
+only verified at build time). Filed `bug-distro-gemma-hash-drift.md`
+in actionable backlog — fixable via a local `nixpkgs.overlays`
+override or by bumping `distro` once upstream pins the model to an
+immutable HF revision.
+
+Externals all <7d (nixpkgs 5d, hm 1d, srvos 3d, nixos-hw 3d,
+nix-index-db 0d, nixvim 4d) — no bump-* to file.

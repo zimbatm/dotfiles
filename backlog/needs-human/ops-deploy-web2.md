@@ -79,3 +79,32 @@ drift). Uptime 0d13h — not rebooted since gen-26 deploy May-9 ~21:06.
 
 Reconcile: `kin deploy web2`. Then re-walk the unverified runtime
 checks above (pin-nixpkgs, attest identity).
+
+### drift @ 3603dcd (2026-05-10)
+
+```
+have: /nix/store/kjiq55xlnipwssavflkz9isq3zhxwpgq-…549bd84   (gen-26, May-9)
+want: /nix/store/zm1v54mngycdxrwl07w8cq4i9nsasj6z-…549bd84   (was q433p0x7 @ 5d4d6b3)
+carries: 2 — STALE
+```
+
+Closure mover: **e22951a** (kin `912aad5c→4db2186d`, builder-cert
+regen — `gen/identity/machine/web2/builder-cert.pub`,
+`gen/identity/user-{claude,zimbatm}/_shared/cert-{1,2}.pub`,
+`gen/ssh/_shared/config`). The new cert and the regenerated
+`/etc/ssh/ssh_known_hosts` land in the web2 toplevel. Stacked on the
+prior carry (5decc79: iets `4d7f54b7→751471a8` touches ietsd).
+
+Dry-build PASS: web2 0 drvs to build (toplevel `zm1v54mn` already in
+local store). `kin status` health: degraded — uptime 0d13h40m,
+mem 2.8G/3.7G (75%), `restic-backups-gotosocial.service` still
+failing (tracked in `ops-web2-restic-rsyncnet.md`, not config drift).
+
+Externals all <7d (nixpkgs 5d, hm 1d, srvos 3d, nixos-hw 3d,
+nix-index-db 0d, nixvim 4d) — no bump-* to file.
+
+Reconcile: `kin deploy web2` (after lockout-recovery check — the
+builder-cert regen rotates `/etc/ssh/ssh_known_hosts` and the
+`@cert-authority` entry; confirm the fleet CA signing key hasn't
+rotated underneath the deployed cert before applying). Then re-walk
+the unverified runtime checks above (pin-nixpkgs, attest identity).
