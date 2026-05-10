@@ -613,3 +613,38 @@ Reconcile: `kin deploy nv1` from the desk after relay1 is installed
 `llama-swap` serves both `gemma4:e2b` and `qwen2.5:0.5b` (the
 mkForce drops any other distro-default models — verify nothing on
 nv1 expects them).
+
+### drift @ a246abf (2026-05-10, ~20:10 UTC) — relay1 + web2 reconverged; nv1 the lone carry
+
+```
+nv1:   have <UNPROBEABLE via declared path>  (last-known mmr7zsqbsx… = 87a370f, gen-26, May-9)
+       want mj9xr536gazy3188lmb1yjrs3xc0d0yw…549bd84  (unchanged @ af167fd; fa37f2c/a246abf web2-only)
+       carries ~10 — STALE
+build: ✓ eval ok (1 warn: hostPlatform→stdenv.hostPlatform, distro);
+       dry-build PASS (298 drvs across all 3, cold homespace store)
+probe: ✗ proxyJump=relay1 — `kin ssh nv1` times out 45s.
+       ✓ ALIVE on mesh from web2 — `ping -6 fd0c:…deae` 0% loss, 52–91ms RTT.
+```
+
+nv1 is **alive** (mesh ping responds from web2's `kinq0`), but the
+declared `proxyJump=relay1` SSH path doesn't reach it. Cause: nv1 is
+running gen-26 (`mmr7zsqbsx`, `87a370f`), which **predates the relay1
+re-create** — nv1's deployed mesh config has no
+`mesh.relay=[relay1]` entry and doesn't know the fresh relay1's
+identity, so relay1 → nv1 has no established peer leg. Until nv1
+redeploys, the only homespace path is the web2 jump (which itself
+needs a non-batch SSH to nv1's ULA — homespace's kin cert doesn't
+TOFU through the relay leg cleanly).
+
+**relay1 and web2 are now both at want** — the order documented in
+`ops-deploy-relay1.md` ("install relay1, then web2, then nv1")
+played out. nv1 is the lone remaining carry. Want is unchanged at
+`mj9xr536` (the only commits since af167fd — `fa37f2c` gotosocial
+key-auth, `a246abf` orphan secret prune — are web2-gen-only and
+don't touch nv1's closure).
+
+Externals all <7d. gen/ up to date.
+
+Reconcile: `kin deploy nv1` from the desk. After deploy, the
+`proxyJump=relay1` path should establish (nv1's mesh registers
+with relay1) — re-probe before closing `ops-deploy-relay1.md`.

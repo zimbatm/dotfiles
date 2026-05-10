@@ -303,3 +303,40 @@ Reconcile: `kin deploy web2` (after relay1 is installed — the new
 mesh.relay points at it; deploying web2 first leaves it dialing a
 dead relay address until relay1 comes up; iroh falls back, but
 verify `services.telemetry` doesn't flap).
+
+### drift @ a246abf (2026-05-10, ~20:10 UTC) — gen-28 DEPLOYED, AT WANT, restic FIXED
+
+```
+have:   /nix/store/683by1csf5dhskam575gh5lcvw8sp5qn-…549bd84   (gen-28, May-10 ~17:50, no reboot)
+booted: /nix/store/f06q7cg89xb9srxc1plsw6kngs0m8cjv-…549bd84   (gen-27 boot — current != booted)
+want:   /nix/store/683by1csf5dhskam575gh5lcvw8sp5qn-…549bd84   (have == want)
+carries: 0
+build:  ✓ dry-build PASS
+probe:  ✓ kin status web2 → ✓ running, 0 stale, 0 unhealthy. Uptime 7h54m. 0 failed units.
+```
+
+web2 was deployed to gen-28 (`683by1cs` — the want at `fa37f2c`, the
+gotosocial restic key-auth fix) without reboot at ~17:50 UTC. The
+gen-27 carries flushed: `afe3c5e` flake-update + `74ed8ef` mesh.relay
++ `af167fd` password rekey + `fa37f2c` gotosocial key auth +
+`a246abf` orphan secret prune all in.
+
+**`restic-backups-gotosocial.service` is FIXED** — 4 consecutive
+hourly cycles (17:00–20:00 UTC) all `Finished` cleanly; the 20:00
+run consumed 41.5s CPU / 285M in / 294M out — an actual backup, not
+a no-op. The `fa37f2c` switch from `sshpass -f <pw>` to
+`ssh -i <key>` resolved the rsync.net SFTP auth rejection.
+`ops-web2-restic-rsyncnet.md` deleted this round.
+
+`current != booted` — gen-27 rebooted at ~12:13 UTC, gen-28 was a
+`switch-to-configuration switch` without reboot. No `needs_reboot`
+flagged by `kin status`. Reboot at the next maintenance window if
+the kernel/firmware delta from gen-27→gen-28 matters (it's a small
+HM/gen-only delta — likely doesn't).
+
+Health: load 0.0/2, mem 2.7G/3.7G (72%) +32.5M swap, disk 8.1G/36.8G
+(22%). Externals all <7d. gen/ up to date.
+
+**Carries 0 — web2 is at want.** Remaining unchecked items above
+(pin-nixpkgs, attest identity) need root SSH or at-the-host. Re-walk
+when convenient, then this file can close.
