@@ -157,6 +157,7 @@
           tab-tap = call ./packages/tab-tap;
           live-caption-log = call ./packages/live-caption-log;
           sel-act = call ./packages/sel-act;
+          web-eyes = call ./packages/web-eyes;
           inherit (inputs.nix-skills.packages.${system}) nix-skills-commands;
         }
       );
@@ -192,6 +193,7 @@
           (pkgs.callPackage ./packages/kin-opts { })
           (pkgs.callPackage ./packages/man-here { })
           (pkgs.callPackage ./packages/pty-puppet { })
+          (pkgs.callPackage ./packages/web-eyes { })
         ];
       };
     in

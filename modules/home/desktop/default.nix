@@ -192,6 +192,7 @@ in
     self'.llm-router
     self'.agent-eyes
     self'.gsnap
+    self'.web-eyes
     self'.agent-meter
     self'.now-context
     self'.pty-puppet
