@@ -15,7 +15,7 @@
 #
 # Two axes:
 #   1. line/byte capping  — git log, find, tree, raw nix eval (volume)
-#   2. TOON re-encoding   — nix/kin --json, jq             (density)
+#   2. TOON re-encoding   — nix --json, jq                 (density)
 # Axis 2 ships `toon-emit.py` (stdlib python3, already in agentshell's
 # closure). Strict pass-through outside two safe shapes; only fires when
 # stdout is *not* a pipe so `nix eval --json | jq` style cascades keep
@@ -92,10 +92,13 @@ let
     exec "$real" "$@"
   '';
 
-  kin = shim "kin" ''
-    if _has '--json' "$@" && ! _has '--raw' "$@"; then _toon "$@"; fi
-    exec "$real" "$@"
-  '';
+  # No `kin` shim: the only kin on a grind worktree's PATH is the one the
+  # agentshell symlinkJoin shadows, so the prelude's PATH-strip leaves
+  # `command -v kin` with nothing to find (exit 127, SHELL_SQUEEZE=0
+  # bypass unreachable). git/nix/jq/find/tree all have a system fallback;
+  # kin doesn't. The TOON win on `kin opts/status --json` is marginal
+  # next to `nix eval --json` anyway. Re-add only with an explicit
+  # `.kin-real` link from the agentshell wrap, never via PATH lookup.
 
   jq = shim "jq" ''
     # -r/-j/-a leave JSON; --arg/--rawfile/etc. are inputs, not output shape.
@@ -134,7 +137,6 @@ pkgs.symlinkJoin {
   paths = [
     git
     nix
-    kin
     jq
     find
     tree

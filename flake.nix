@@ -121,7 +121,9 @@
           # Wrap kin's agentshell so grind's `nix build .#agentshell` profile-link
           # (grind-base.js:75, denylisted) picks up the squeeze shims first in PATH
           # without touching the workflow file. symlinkJoin: first path wins, so
-          # shell-squeeze/bin/{git,nix,find,tree} shadow; marker propagates.
+          # shell-squeeze/bin/{git,nix,jq,find,tree} shadow; marker propagates.
+          # (No `kin` shim: only kin on the grind PATH is the one shadowed
+          # here — the prelude's PATH-strip would orphan it. See shell-squeeze.)
           agentshell = pkgs.symlinkJoin {
             name = "agentshell";
             paths = [
