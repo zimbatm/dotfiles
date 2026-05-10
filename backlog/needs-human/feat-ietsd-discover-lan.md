@@ -20,10 +20,13 @@ The home slice:
    This is per-machine, not global — `discoverLan` opens 5353/udp; only
    set it where machines actually share a link (kin's option doc is
    explicit that cloud boxes shouldn't speak mDNS).
-3. Identify the **second** machine that shares nv1's LAN segment. web2
-   is the only other declared machine; if it's not co-located with nv1
-   the falsifier can't run with the current fleet — note that here and
-   in `../meta/next.md` rather than faking it with a VM.
+3. ~~Identify the **second** machine that shares nv1's LAN segment.~~
+   **Done — finding (grind, 2026-05-10): there is no LAN peer.** web2
+   is a Hetzner cloud box (`machines/web2/configuration.nix:16`, "IPv4
+   via DHCP, IPv6 via hetzner-ipv6.service"); nv1 is a desktop. They
+   are not co-located and never share a link-local segment. Recorded
+   in `../meta/next.md` Track B0. Per the kin option doc warning, do
+   **not** set `discoverLan` on web2 — cloud boxes shouldn't speak mDNS.
 4. `kin deploy` both, run the B0 falsifier (below).
 
 ## why
@@ -50,12 +53,36 @@ as `needs-human/ops-builders-key-drop.md`.
   `../iets/backlog/feat-ietsd-advertise-mdns.md`. Until that lands (or
   the design answer is "co-locate `castored`"), this item can declare
   the config but the falsifier is **not runnable**.
+- **No LAN peer in the home fleet (grind finding, 2026-05-10).** The
+  fleet is nv1 (desktop) + web2 (Hetzner cloud,
+  `machines/web2/configuration.nix:16`). They do not share a LAN
+  segment, and web2 must not speak mDNS (kin option doc). The B0
+  falsifier needs a second physical machine on nv1's link — that
+  machine does not exist. Blocked on **hardware**, not config. Do not
+  fake it with a VM/container peer (loopback mDNS proves nothing about
+  the real LAN-fallthrough path the falsifier measures). Recorded in
+  `../meta/next.md` Track B0.
+- **Pinned kin lacks `services.ietsd.discoverLan` (grind finding,
+  2026-05-10).** `flake.lock` pins kin@912aad5c (2026-05-09 17:56Z);
+  `discoverLan` landed kin@bc1fed10 (2026-05-10 03:27Z), which is
+  **not an ancestor** of the pin (`git merge-base --is-ancestor`
+  fails). Even the no-op config declaration cannot be written until a
+  bump-kin to ≥ bc1fed10 lands here. That bump is the bumper
+  specialist's call (one input per round, oldest-first), not this
+  item's.
 - Stage-1 soak gate (`kin.nix:100` comment): widen to nv1 only after
   web2's alt-socket soak round-trips clean.
-- A second machine on nv1's physical LAN segment must run `ietsd`. If
-  none exists, this item is blocked on hardware, not config.
 - Human-gated: `kin deploy nv1` + `kin deploy <peer>` + falsifier run.
   Move to `needs-human/` once the config edit is in.
+
+## status (grind, 2026-05-10)
+
+Moved to `needs-human/`. Every remaining blocker is outside grind's
+reach: the LAN-peer gap needs a hardware decision (add a second
+machine on nv1's LAN, or accept B0 is unfalsifiable on this fleet),
+the advertise gap is upstream iets work, the kin pin is the bumper's
+queue, and the deploy + falsifier run is human-gated. Nothing left
+for an autonomous round to do here.
 
 ## falsifies
 
