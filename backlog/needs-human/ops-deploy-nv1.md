@@ -23,46 +23,51 @@ delta to preserve — `kin deploy nv1` is safe from a tree-state
 perspective. Booted system is older (`q4a00q1m…`, boot May-8 ~21:47
 — `current != booted`, switch-to-configuration without reboot).
 
-## Latest status (drift @ 4868b89, 2026-05-10)
+## Latest status (drift @ a246abf, 2026-05-10, ~20:10 UTC)
 
 ```
-have:   /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-…549bd84   (= 87a370f, gen-26, May-9 — last probe @ d9ac7f1, ~12:32 UTC)
+have:   /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-…549bd84   (= 87a370f, gen-26, May-9 — last direct probe @ d9ac7f1, ~12:32 UTC)
 booted: /nix/store/q4a00q1mixlspzglspc35wm3ra2n5i6z-…549bd84   (boot May-8 ~21:47, no reboot since — last probe @ d9ac7f1)
-want:   /nix/store/pdbl6y1n1phs52fcg8xi983ilhc133va-…549bd84   (was i1sbs5cp @ d9ac7f1)
-carries: 7 (5d4d6b3, 3603dcd, 38ccdcf, bd8ef65, 7f043af, 41e6f41, e395d16)
-build:  ✓ dry-build 30 drvs / 0 fetch
-probe:  ✗ UNREACHABLE this round — `fd0c:…deae` 100% loss from web2's kinq0 (desktop off/asleep)
+want:   /nix/store/mj9xr536gazy3188lmb1yjrs3xc0d0yw-…549bd84   (was pdbl6y1n @ 4868b89)
+carries: ~10 — STALE
+build:  ✓ eval ok (1 warn: hostPlatform→stdenv.hostPlatform, distro);
+        dry-build PASS (298 drvs across all 3, cold homespace store)
+probe:  ✗ proxyJump=relay1 — `kin ssh nv1` times out 45s.
+        ✓ ALIVE on mesh from web2 — `ping -6 fd0c:…deae` 0% loss, 52–91ms RTT.
 ```
 
 Want progression since fcc6b68 (Apr-24): 77dfr1xn → 1mdzqizi (e960caf) →
 n5smybmw (671f35b) → zi5as60q (e3c1cea) → 8l90l7hx (8231b3d) → qjdsdd97
 (23975b3) → rsb8r0kg (9def97e) → 53s3xn5k (cce49ee) → isgj6yg9 (80a9212)
 → mbw1f3pr (6753fd8) → mmr7zsqbsx (87a370f) → 3cyxaj1q (5d4d6b3) →
-qh011y8z (3603dcd) → lj1rs6ir (38ccdcf — gemma pin @ 459f04b) →
-lf0ln19z (bd8ef65 — kin/iets/hm bump + grind-pkg harden) →
-i1sbs5cp (7f043af = d9ac7f1 — lockring) →
-**pdbl6y1n (4868b89 — web-eyes + parakeet probe)**.
-Closure-affecting since 6753fd8: dc78daf (relay1 removal), 81fad96 /
-e166eac / f2a3653 / 231d9ff / c917b09 (gnome-keyring + signal libsecret
-churn), fb08d11 (fmt), 05b2e2c (kin bump for tab-indent fix). 8c7c93c +
-33ac9da (packages/openwarp + flake.nix wire-up) are closure-neutral —
-flake-output only, not in `environment.systemPackages` or
-`home.packages`; nv1 + web2 toplevel drvs identical pre/post. Dry-build
-486 drvs / 1230 fetch / 4.3 GiB (was 486/1245/4.3G — small fetch
-shrink, likely substitute cache state, no closure delta).
+qh011y8z (3603dcd) → lj1rs6ir (38ccdcf — gemma pin) → lf0ln19z (bd8ef65 —
+kin/iets/hm bump + grind-pkg harden) → i1sbs5cp (7f043af — lockring) →
+pdbl6y1n (4868b89 — web-eyes + parakeet probe) →
+**mj9xr536 (af167fd — flake update + relay1 re-create + fps regen +
+gemma settings.models mkForce-whole + password rekey)**.
+fa37f2c/a246abf are web2-gen-only — don't move nv1's closure.
+
+**relay1 + web2 reconverged** (drift @ a246abf): relay1 INSTALLED gen-1
+`dikz2p8m` (booted==current, 0 failed, kin-mesh.service routing both
+/48s); web2 AT WANT gen-28 `683by1cs` (0 carries, restic FIXED).
+nv1 is the **lone remaining carry**. nv1 is alive on the mesh (ping
+responds from web2's kinq0) but the declared `proxyJump=relay1` SSH
+path can't reach it: gen-26's deployed mesh config predates the relay1
+re-create, so relay1→nv1 has no established peer leg. Until nv1
+redeploys, the only homespace path is the web2 jump.
+
 Last confirmed have==want on origin/main: `www09p3bx` @ 9403a95
-(≈ e196255 deploy, 2026-04-11). nv1 unprobeable since (mesh; relay
-gone). **Note:** Jonas was active locally on May-9 (deployed web2
-gen-26 ~20:44 + reboot ~21:06) — likely also deployed nv1 from the
-desk; ask before assuming carries are still 12+.
+(≈ e196255 deploy, 2026-04-11).
 
 ## Reconcile
 
 ```sh
-kin deploy nv1
+kin deploy nv1   # from the desk
 ```
 
-Then walk the runtime checks. Then delete this file.
+After deploy, the `proxyJump=relay1` path should establish (nv1's mesh
+registers with relay1) — re-probe via the declared path. Then walk the
+runtime checks below. Then delete this file.
 
 ## nv1-affecting commits since e196255 (cumulative bisect log, compacted 2026-04-24)
 
@@ -245,11 +250,11 @@ Walk these at the nv1 desk after deploy:
 - **ask-local --diff-gate** — stage a diff, `ask-local --diff-gate` returns pass/fail JSON; pre-commit hook fires it; starship `diff_gate` segment renders on dirty tree; `curl -s localhost:8090/review -d @<diff>` responds
 - **sem-grep sig** — `sem-grep sig 'def main'` returns tree-sitter signature matches across indexed repos
 - **pin-nixpkgs dropped** — `nix registry list | grep nixpkgs` and `echo $NIX_PATH` still resolve to system nixpkgs (kin upstream now provides; regression = `nix-shell -p` pulls channel)
-- **attest identity** — `ls /run/kin/identity/attest.*` exists post-deploy (kin 3118eb1d feature)
+- **attest identity** — `ls /run/kin/identity/machine/nv1/attest.key` exists post-deploy (path moved from `/run/kin/identity/attest.*` in a kin update — verified on web2 gen-28)
 - **sem-grep refs** — `sem-grep refs <symbol>` returns file:line for every ts-identifier use across indexed repos; walk `packages/sem-grep/bench-refs.txt` ground truth
 - **tuicr** — `tuicr` over a staged diff renders TUI; comments export as markdown for backlog/ round-trip
 - **ask-local perms** — `stat -c '%a' ~/.local/state/ask-local{,/*.jsonl}` shows 700/600 (c10990b hardening)
-- **restic-gotosocial** (web2, carried) — `systemctl status restic-backups-gotosocial.{service,timer}`
+- ~~**restic-gotosocial** (web2, carried)~~ — **FIXED** (fa37f2c key-auth, drift @ a246abf: 4 consecutive hourly Finished cycles on gen-28)
 - **man-here annotate** — `man-here annotate <cmd>` emits pname-major notes + appends reads.jsonl
 - **ptt-dictate cpu lane** — `ptt-dictate --backend=cpu` invokes transcribe-cpu (sherpa-onnx parakeet); `--backend=auto` picks cpu when NPU unavailable; `bench-dictate.sh` reports per-lane latency
 - **NVIDIA/CUDA** — `nvidia-smi` reports RTX 4060 with CUDA-13
@@ -272,379 +277,12 @@ re-compacts into the table above when this section exceeds 3 entries)
 
 <!-- compacted @ b236e97 (META r1, 2026-04-24): folded 6a4ed7a+1490f45+f4d909c+68ab318+fcc6b68 into table+checks above. want progression dvgqw9cg→av9v7mmc→glivxmgg→48k7pdv5→z0b9vg9s→77dfr1xn. nv1 not-on-mesh entire window; relay1+web2 both human-deployed Apr-24 20:06. -->
 <!-- compacted @ META r15 (2026-05-09): folded e960caf+671f35b+e3c1cea+8231b3d+23975b3+9def97e+cce49ee+80a9212 into table+checks above. want progression 77dfr1xn→1mdzqizi→n5smybmw→zi5as60q→8l90l7hx→qjdsdd97→rsb8r0kg→53s3xn5k→isgj6yg9→mbw1f3pr. nv1 not-on-mesh entire window (relay1 down Apr-26→). niri/vfio/deepfilter marked MOOT in checks. -->
-
-### drift @ 6753fd8 (2026-05-09, r15)
-
-```
-have: ???  (not-on-mesh — relay1 FULLY DOWN, no ProxyJump leg)
-want: /nix/store/mbw1f3pr…-nixos-system-nv1-26.05.20260505.549bd84   (was isgj6yg9)
-```
-
-Two closure-affecting commits since 80a9212 (38be12c), both
-**nv1-only** desktop packages: `b2d179c` (vocab biasing — ptt-dictate
-+15L, transcribe-cpu +29L, transcribe-npu +31L all source
-`lib/dictation-vocab.sh`, lands via `modules/home/desktop`) and
-`f94448e` (sem-grep hybrid FTS5/BM25 + RRF retrieval, +5L net, also
-desktop-only). relay1 `dxirzajg…549bd84` and web2 `msim209r…549bd84`
-eval-identical at 80a9212 and 6753fd8.
-
-Dry-build PASS: nv1 542 drvs / 1279 fetch / 4.4 GiB (was 555/1331/4.8G
-@ 80a9212). New runtime check post-deploy: (1) `ptt-dictate --vocab`
-emits the sem-grep-mined hint list; (2) `sem-grep "test query"` shows
-the BM25 leg in `--explain` output (FTS5 table populated). Layered on
-top of the system-features and builders.hcloud-07 checks above.
-**Reachability still blocked on relay1 recovery.**
-
-## append @ relay1 retired (2026-05-09)
-
-relay1 decommissioned (Jonas; iroh underused). The `proxyJump = "relay1"`
-leg is removed from `kin.nix` — nv1's mesh ULA is no longer reachable
-from the homespace at all. **Deploy is local-only**: `kin deploy nv1`
-from nv1 itself, or Jonas at the desk per `feedback_deploy_scope`. The
-"recover relay1 first" precondition is moot. The kin-infra peer-fleet
-mesh path (hcloud-07 builder ULA) is independent of relay1 and remains.
-
-### drift @ 5d4d6b3 (2026-05-10)
-
-```
-have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
-want: /nix/store/3cyxaj1qwflb52zx2vi7qdiay1aj7arw-…549bd84   (was mmr7zsqbsx @ 5e01750)
-```
-
-Two lock-bump commits since 5e01750, both flake.lock-only: `5decc79`
-(iets `4d7f54b7→751471a8` + llm-agents `c7419130→7f0cb51f`) and
-`5b3e8e1` (nix-index-database `dd2d0e3f→01466c41`). All three inputs
-are in nv1's home/desktop closure — toplevel moves
-`mmr7zsqbsx→3cyxaj1q`. `28b5a56` (relay1 sweep) is doc/CI-config only,
-no eval delta. Want progression appended to the table above.
-
-Dry-build PASS: nv1 486 drvs / 1230 fetch / 4.3 GiB (unchanged from
-5e01750 — same drv count, fetch payload stable).
-
-Externals all <7d among the named set (nixpkgs 5.2d, hm 1.8d, srvos
-3.3d, nixos-hw 3.1d, nix-index-db 0.2d, nixvim 4.8d) — no bump-* to
-file this round. nv1 still not-on-mesh; reconcile is local-only.
-
-### drift @ 3603dcd (2026-05-10) — ⚠ DEPLOY-BLOCKED (FOD hash mismatch)
-
-```
-have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
-want: /nix/store/qh011y8zifqk5s848vcc51dq451cad74-…549bd84   (was 3cyxaj1q @ 5d4d6b3)
-build: ✗ FAILS — fixed-output hash mismatch in gemma-4-E2B-it-Q4_K_M.gguf
-```
-
-Closure mover since 5d4d6b3: **e22951a** (kin `912aad5c→4db2186d`,
-builder-cert regen — `gen/identity/machine/nv1/builder-cert.pub`,
-`gen/ssh/_shared/config`, user certs). Want
-`3cyxaj1q→qh011y8z`.
-
-**New deploy-blocker found this round.** The toplevel **eval/dry-build
-passes** (374 drvs to build, 0 fetch — substitutes pre-fetched into
-the homespace store from a prior full-build attempt) but the actual
-`nix build` fails:
-
-```
-error: hash mismatch in fixed-output derivation
-       '/nix/store/s7dg1njs6kw8q3qp54lqn03ssi2p0mc0-gemma-4-E2B-it-Q4_K_M.gguf.drv':
-  specified: sha256-rABp68zTmSXYNvJKiMDwyFjSBXjCmyGrfO3OZu5XaEU=
-       got:  sha256-k3i8RxcQIp7xZXCbYuNL+2IjFCDdr21ynnJzBbW4Zy0=
-```
-
-Source: `distro` flake input (`generational-infrastructure/distro`
-@ 385a9fe9), `modules/nixos/llama-swap.nix:35-37`. The model file at
-`https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf`
-was re-uploaded upstream — the URL points at `main` (a mutable ref),
-so the fetchurl hash drifted under us. The 3.0 GB file with the new
-hash is already in the homespace store
-(`/nix/store/jakmd1zznwjkynvsbw5x5s87f4cb90zf-gemma-4-E2B-it-Q4_K_M.gguf`,
-flat sha256 = the "got" hash above), so this isn't a network glitch.
-
-Reaches the toplevel via `services.opencrow-local.enable = true`
-(`machines/nv1/configuration.nix:49`) → distro's `opencrow.nix` →
-`llama-swap.nix` → `pkgs.fetchurl` for the gemma model →
-`unit-llama-swap.service` → `etc-json` → `nixos-system-nv1`.
-
-**This blocks `kin deploy nv1` even when nv1 comes back on mesh.**
-The grind eval+dry-build gate does NOT catch this (FOD hashes are
-only verified at build time). Filed `bug-distro-gemma-hash-drift.md`
-in actionable backlog — fixable via a local `nixpkgs.overlays`
-override or by bumping `distro` once upstream pins the model to an
-immutable HF revision.
-
-Externals all <7d (nixpkgs 5d, hm 1d, srvos 3d, nixos-hw 3d,
-nix-index-db 0d, nixvim 4d) — no bump-* to file.
-
-### drift @ 38ccdcf (2026-05-10) — ✓ FOD blocker CLEARED
-
-```
-have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
-want: /nix/store/lj1rs6ir15jsj19jifsphyjj01537v7i-…549bd84   (was qh011y8z @ 3603dcd)
-build: ✓ dry-build 373 drvs / 0 fetch — gemma FOD no longer in build set
-```
-
-Closure mover since 3603dcd: **459f04b** (= `f796d39` post-merge) —
-`machines/nv1/configuration.nix` pins gemma-4-E2B GGUF at the option
-layer (`services.llama-swap.settings.models."gemma4:e2b".cmd =
-lib.mkForce …` with `hash = "sha256-k3i8Rx…"`) instead of distro's
-`let`-bound `fetchurl` against the now-rotated `resolve/main` ref.
-The model file with the new hash is already in the homespace store
-(`/nix/store/jakmd1zznwjkynvsbw5x5s87f4cb90zf-gemma-4-E2B-it-Q4_K_M.gguf`).
-`bug-distro-gemma-hash-drift.md` consumed; FIXME(distro) noted in the
-override comment for when upstream pins to an immutable HF revision.
-
-Verified: nv1 dry-build closure no longer contains any
-`gemma-4-E2B-it-Q4_K_M.gguf` FOD — the old `s7dg1njs…` drv is gone,
-the new fetchurl resolves to the in-store path. **`kin deploy nv1` is
-no longer FOD-blocked.** Remaining gate is mesh reachability only —
-`kin status nv1` still `not-on-mesh` (desktop offline or mesh ULA
-unreachable from homespace; no relay1 ProxyJump fallback since dc78daf).
-
-`1bf6327` (shell-squeeze TOON) is closure-neutral for nv1 —
-`shell-squeeze` reaches only the `agentshell` flake output
-(`flake.nix:108-123`), not `home.packages` or
-`environment.systemPackages`.
-
-Externals all <7d (nixpkgs 5.3d, hm 1.9d, srvos 3.4d, nixos-hw 3.1d,
-nix-index-db 0.2d, nixvim 4.9d) — no bump-* to file.
-
-Reconcile: `kin deploy nv1` from a mesh-connected machine (desk).
-Confirm any intentional local delta on nv1 is committed+pushed first
-(off-main `have` history, see ⚠ above). Then walk runtime checks.
-
-### drift @ bd8ef65 (2026-05-10)
-
-```
-have: ???  (not-on-mesh; no ProxyJump fallback since relay1 retired)
-want: /nix/store/lf0ln19z3d5bf2smqg3dgzwkgr2kpgpb-…549bd84   (was lj1rs6ir @ 38ccdcf)
-build: ✓ dry-build ~250 drvs / 0 fetch — no FOD blocker observed in build set
-```
-
-Closure movers since 38ccdcf — three commits, all closure-affecting
-for nv1:
-
-- **d8a49c0** kin `4db2186d→fb13c282` + iets `751471a8→42fa90c1`
-  (both reach nv1 via kin-mesh/kin-secrets units + iets pkg in
-  `extraAgentPackages`).
-- **db007f8** home-manager `fdb2ccba→2f419037` — moves all
-  `modules/home/{desktop,terminal}` HM-managed packages
-  (`useGlobalPkgs+useUserPackages` puts them in the system closure).
-- **4df1c0c** packages harden — `llm-router.py` (in
-  `modules/home/desktop/default.nix:192` → `home.packages`),
-  `lib/dictation-vocab.sh` (sourced by ptt-dictate/transcribe-{cpu,npu}),
-  `sem-grep/bench-vs-ck.sh` (sem-grep pkg). All three are
-  `.sh`/`.py` source files baked into nv1 derivations, so they move
-  the toplevel even without a `.nix` diff.
-
-Dry-build PASS at ~250 drvs / 0 fetch when started, draining steadily
-under a parallel `nix build --keep-going` probe (250→36 over ~5 min,
-no errors); remaining tail is heavy compile-bound desktop set
-(`quickshell`, `noctalia-shell`, `cuda12.9-libcublas`, `llama-cpp-8983`,
-`gitbutler-vendor-staging`) inherited from the `distro` input — none
-new, all existed in `lj1rs6ir`. One CA FOD remains
-(`gitbutler-0.19.7-vendor-staging`) — fixed-hash cargo vendor bundle,
-not a `resolve/main`-style mutable URL, low drift risk. **No new FOD
-blocker** — gemma pin from 459f04b holds.
-
-Probe note: `kin status nv1` = `nix build --no-link --json` on the
-toplevel (kin/evaluator.py:194), which on a cold homespace store
-**realises** the whole closure before it can compare have/want. That
-exceeded a 120 s probe timeout this round → `Build failed due to
-failed dependency` (timeout artifact, NOT a real eval/build failure;
-`nix build --dry-run` and the `--keep-going` build both pass). web2's
-toplevel was already in store so its `kin status` returned instantly.
-nv1 itself stays `not-on-mesh` regardless.
-
-Externals all <7d (nixpkgs 5d, hm 0d, srvos 3d, nixos-hw 3d,
-nix-index-db 0d, nixvim 4d) — no bump-* to file.
-
-Reconcile: `kin deploy nv1` from a mesh-connected machine (desk).
-Confirm any intentional local delta on nv1 is committed+pushed first
-(off-main `have` history, see ⚠ above). Then walk runtime checks.
-
-### drift @ d9ac7f1 (2026-05-10) — ✓ HAVE confirmed on-main; nv1 PROBEABLE via web2
-
-```
-have:   /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-…549bd84   (= 87a370f, gen-26, May-9)
-booted: /nix/store/q4a00q1mixlspzglspc35wm3ra2n5i6z-…549bd84   (boot May-8 ~21:47)
-want:   /nix/store/i1sbs5cpx4qxapc18h90djz4hlz3ad12-…549bd84   (was lf0ln19z @ bd8ef65)
-carries: 5 — STALE
-build:  ✓ dry-build 33 drvs / 0 fetch
-```
-
-Two observability findings supersede prior rounds:
-
-1. **nv1 IS reachable from the homespace** — `ssh -J root@89.167.46.118
-   root@fd0c:3964:8cda::6e42:b995:2026:deae` (web2 has a `kinq0`
-   mesh route to nv1's ULA *and* a public IPv4 the homespace can SSH
-   to). This is the relay1 replacement that's been there since web2
-   joined the mesh — only the configured `proxyJump = "relay1"`
-   shortcut went away with relay1's decommission. `kin status nv1`
-   stays slow (toplevel `nix build` before compare) but raw
-   `readlink /run/current-system` is sub-second.
-2. **nv1's deployed toplevel is on-main** — `mmr7zsqbsx…` is an
-   exact match for `nixosConfigurations.nv1.config.system.build.toplevel`
-   at origin/main `87a370f`. The off-main warning (d2ad1d1 / 53bed8f)
-   no longer applies; Jonas's gen-26 deploy on May-9 came from a
-   committed origin/main tree. `current != booted` (boot is one
-   gen older) — a `switch-to-configuration switch` without reboot.
-
-Closure mover since bd8ef65: **7f043af** (`grind/bump-lockring-input`
-merge) — `flake.nix` adds `inputs.lockring` + `extraInputs = { inherit
-(inputs) lockring; }`; `kin.nix` adds `services.lockring = { on =
-["nv1"]; sshAgent = true; }`; `flake.lock` adds the lockring node;
-`gen/_policy/_shared/export.cedar` + `gen/manifest.lock` regen.
-nv1's toplevel picks up the lockring nixosModule (per-user secrets
-daemon + opt-in ssh-agent ingress, `LOCKRING_SSH_AUTH_SOCK=1`).
-c070756 + d9ac7f1 are backlog/doc-only — closure-neutral.
-
-Want progression: `lf0ln19z (bd8ef65) → i1sbs5cp (7f043af = d9ac7f1)`.
-
-Runtime spot-check (via web2 jump): one failed unit —
-`llama-swap-socket.service` (`socat … exited 143/n/a`, SIGTERM exit
-not masked). Stopped May-10 00:28 on the unit-restart cascade; benign
-(socat returns 128+15 on TERM and the unit lacks
-`SuccessExitStatus=143`). Unit comes from the `distro` input's
-`llama-swap.nix` — same module as the gemma FOD that needed the
-459f04b override. Not a deploy blocker; worth a `bug-distro-*` if it
-keeps recurring (it predates the lockring delta — in the deployed
-gen-26 closure). Add to the runtime-check list:
-`systemctl status llama-swap-socket.service` after deploy, expect
-`active`, not `failed`.
-
-Externals all <7d (nixpkgs 4d, hm 0d, srvos 2d, nixos-hw 2d,
-nix-index-db 0d, nixvim 4d) — no bump-* to file. gen/ up to date
-(`kin gen --check` passes).
-
-Reconcile: `kin deploy nv1` from a mesh-connected machine (desk),
-or via the web2 jump path above (review SSH continuity per
-`../kin/docs/howto/lockout-recovery.md` first — the lockring change
-adds an ssh-agent socket that does *not* flip `$SSH_AUTH_SOCK`
-yet, so the existing key path stays). Off-main concern is cleared —
-no local delta to preserve. Then walk runtime checks; new check:
-lockring unit active + `ls $LOCKRING_SSH_AUTH_SOCK` exists.
-
-### drift @ 4868b89 (2026-05-10) — ✗ nv1 UNREACHABLE; want grows i1sbs5cp→pdbl6y1n
-
-```
-have:   /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-…549bd84   (= 87a370f, gen-26 — last probe @ d9ac7f1, ~12:32 UTC)
-booted: /nix/store/q4a00q1mixlspzglspc35wm3ra2n5i6z-…549bd84   (boot May-8 ~21:47 — last probe @ d9ac7f1)
-want:   /nix/store/pdbl6y1n1phs52fcg8xi983ilhc133va-…549bd84   (was i1sbs5cp @ d9ac7f1)
-carries: 7 — STALE, 2 new movers since d9ac7f1
-build:  ✓ dry-build 30 drvs / 0 fetch
-probe:  ✗ UNREACHABLE — 100% packet loss from web2's kinq0 to fd0c:…deae
-```
-
-Probe failed both legs at ~13:00 UTC: `kin status nv1` times out
-(60s); `kin ssh nv1` → `Network is unreachable` (homespace); via
-web2 jump → `Connection timed out`; `ping -6 -W 3` from web2 over
-kinq0 → 100% loss. The web2-jump path that came online @ d9ac7f1
-(~30 min earlier) is gone — most likely the desktop went to sleep
-or off (Sunday afternoon CET). Not a regression in the relay path;
-re-probe next round before re-reading this as a mesh fault.
-
-Two new closure movers since d9ac7f1 (the lockring drift):
-
-1. **41e6f41** (`grind/adopt-agent-browser-web-eyes` merge, ed6da85
-   commit) — `packages/web-eyes/default.nix` (NEW, 93L) + wired into
-   `modules/home/desktop/default.nix:195` and
-   `flake.nix` `extraAgentPackages`. nv1's HM closure picks up the
-   `web-eyes` agent-browser wrapper.
-2. **e395d16** (`grind/adopt-parakeet-npu-multilingual` merge, 4bb028a
-   commit) — `packages/lib/parakeet-tdt-v3.nix` (NEW, 13L lift) +
-   `packages/transcribe-{cpu,npu}/default.nix` refactor (transcribe-npu
-   gains a `probe-parakeet` symlinkJoin entry, transcribe-cpu sources
-   the lifted lib). Both in nv1's closure via `ptt-dictate` /
-   `live-caption-log`.
-
-Closure-neutral since d9ac7f1: `a14716b` (`kin.nix` `gen.hcloud-api-token`,
-operator-side, no `for` — `kin gen --check` confirms only an unset
-secret reminder), `fa65957` (`packages/shell-squeeze/default.nix`,
-agentshell devShell only — not in any host toplevel), `8a1aca5` /
-`b9d2f70` / `4868b89` (meta/backlog only).
-
-Want progression: `i1sbs5cp (d9ac7f1) → pdbl6y1n (4868b89)`.
-
-Externals all <7d (nixpkgs 5d, hm 0d, srvos 3d, nixos-hw 3d,
-nix-index-db 0d, nixvim 4d) — no bump-* to file. gen/ up to date
-(`kin gen --check`: only `user/hcloud-api-token/_shared` unset,
-expected pending `kin set`).
-
-Reconcile: unchanged from `### drift @ d9ac7f1` — `kin deploy nv1`
-from the desk, walk runtime checks. New checks since d9ac7f1:
-`web-eyes --help` resolves; `transcribe-npu probe-parakeet` exits 0.
-
-### drift @ af167fd (2026-05-10, ~16:50 UTC)
-
-```
-nv1:   have <UNPROBEABLE>  (last-known mmr7zsqbsx… = 87a370f, gen-26, May-9 ~20:44)
-       want mj9xr536gazy3188lmb1yjrs3xc0d0yw…549bd84  (was pdbl6y1n @ 4868b89)
-       carries ~10
-build: ✓ eval ok (1 warn: hostPlatform→stdenv.hostPlatform, distro);
-       dry-build 527 drvs (cold homespace store — not a carry signal)
-```
-
-**UNPROBEABLE this round** — and now for a *different* reason than
-@ 4868b89. Homespace lacks any fleet identity (`kin keys` → `<no
-identity>`, kin-bir7vyhu key absent, kin-infra self-heal key absent).
-No SSH probe was possible to *any* host, including the previously
-working web2 jump leg. Re-probe once a fleet identity lands.
-
-Closure movers since 4868b89: same three as web2 (afe3c5e flake
-update, 74ed8ef relay1 + mesh.relay, af167fd password rekey) **plus**
-the af167fd `machines/nv1/configuration.nix` change itself —
-`services.llama-swap.settings.models` is now a `lib.mkForce` of the
-*whole attr set* (gemma4:e2b + qwen2.5:0.5b, both via `pkgs.fetchurl`
-with pinned hashes), replacing the previous `.cmd`-only override. This
-is the real fix for the distro `builtins.fetchurl` eval-time FOD
-drift; the `.cmd`-only mkForce (459f04b) didn't prevent
-def-collection from forcing the gemma fetchurl. nv1's want
-toplevel changes accordingly.
-
-**proxyJump back**: `kin.nix` now declares `nv1.proxyJump =
-"relay1"` (was lost when relay1 retired @ dc78daf). The
-"web2 has a kinq0 route" workaround documented above is no longer
-the primary path once relay1 is installed and on the mesh — but
-web2 remains a working fallback if relay1 is down.
-
-`kin gen --check`: up to date. Externals all <7d — no bump-*.
-
-Reconcile: `kin deploy nv1` from the desk after relay1 is installed
-(see `ops-deploy-relay1.md`). New runtime check since 4868b89:
-`llama-swap` serves both `gemma4:e2b` and `qwen2.5:0.5b` (the
-mkForce drops any other distro-default models — verify nothing on
-nv1 expects them).
-
-### drift @ a246abf (2026-05-10, ~20:10 UTC) — relay1 + web2 reconverged; nv1 the lone carry
-
-```
-nv1:   have <UNPROBEABLE via declared path>  (last-known mmr7zsqbsx… = 87a370f, gen-26, May-9)
-       want mj9xr536gazy3188lmb1yjrs3xc0d0yw…549bd84  (unchanged @ af167fd; fa37f2c/a246abf web2-only)
-       carries ~10 — STALE
-build: ✓ eval ok (1 warn: hostPlatform→stdenv.hostPlatform, distro);
-       dry-build PASS (298 drvs across all 3, cold homespace store)
-probe: ✗ proxyJump=relay1 — `kin ssh nv1` times out 45s.
-       ✓ ALIVE on mesh from web2 — `ping -6 fd0c:…deae` 0% loss, 52–91ms RTT.
-```
-
-nv1 is **alive** (mesh ping responds from web2's `kinq0`), but the
-declared `proxyJump=relay1` SSH path doesn't reach it. Cause: nv1 is
-running gen-26 (`mmr7zsqbsx`, `87a370f`), which **predates the relay1
-re-create** — nv1's deployed mesh config has no
-`mesh.relay=[relay1]` entry and doesn't know the fresh relay1's
-identity, so relay1 → nv1 has no established peer leg. Until nv1
-redeploys, the only homespace path is the web2 jump (which itself
-needs a non-batch SSH to nv1's ULA — homespace's kin cert doesn't
-TOFU through the relay leg cleanly).
-
-**relay1 and web2 are now both at want** — the order documented in
-`ops-deploy-relay1.md` ("install relay1, then web2, then nv1")
-played out. nv1 is the lone remaining carry. Want is unchanged at
-`mj9xr536` (the only commits since af167fd — `fa37f2c` gotosocial
-key-auth, `a246abf` orphan secret prune — are web2-gen-only and
-don't touch nv1's closure).
-
-Externals all <7d. gen/ up to date.
-
-Reconcile: `kin deploy nv1` from the desk. After deploy, the
-`proxyJump=relay1` path should establish (nv1's mesh registers
-with relay1) — re-probe before closing `ops-deploy-relay1.md`.
+<!-- compacted @ META r2 (2026-05-10): folded 6753fd8 + relay1-retired note +
+5d4d6b3 + 3603dcd (FOD-blocked) + 38ccdcf (FOD cleared) + bd8ef65 + d9ac7f1
+(probeable via web2 jump, on-main confirmed) + 4868b89 (unreachable, desktop
+asleep) + af167fd (all 3 unprobeable, no fleet identity) + a246abf (relay1+web2
+reconverged, fleet identity self-healed via kin login --key kin-infra) into
+"Latest status" above. want progression mbw1f3pr→mmr7zsqbsx→3cyxaj1q→qh011y8z→
+lj1rs6ir→lf0ln19z→i1sbs5cp→pdbl6y1n→mj9xr536. relay1 retired dc78daf May-9,
+re-created 74ed8ef May-10, installed gen-1 dikz2p8m by drift @ a246abf.
+ops-deploy-relay1.md + ops-deploy-web2.md both closed this round. -->
