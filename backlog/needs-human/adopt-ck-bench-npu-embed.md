@@ -80,3 +80,17 @@ wins, the follow-up is "make sem-grep's embedder lighter," not
 "replace sem-grep" — sem-grep's NPU co-residency story (Silero VAD +
 embed + rerank as 1st/2nd/3rd tenants) is its own thread and shouldn't
 be collapsed into a body-search bake-off.
+
+## Status (2026-05-10) — script landed, needs nv1 to run
+
+`packages/sem-grep/bench-vs-ck.sh` is in. Three legs (dense/lexical/ck-hybrid)
+over `bench-refs.txt`, file-level recall@5, prints the falsification thresholds.
+Fails loudly if `/dev/accel/accel0` or the bge-small IR is absent — by design,
+this cannot run in the grind worktree. Pair with `ops-deploy-nv1`:
+
+```sh
+packages/sem-grep/bench-vs-ck.sh | tee -a packages/sem-grep/bench-log.txt
+```
+
+Then file the follow-up the threshold table picks (or close this if dense
+clearly earns its keep).
