@@ -572,3 +572,44 @@ expected pending `kin set`).
 Reconcile: unchanged from `### drift @ d9ac7f1` — `kin deploy nv1`
 from the desk, walk runtime checks. New checks since d9ac7f1:
 `web-eyes --help` resolves; `transcribe-npu probe-parakeet` exits 0.
+
+### drift @ af167fd (2026-05-10, ~16:50 UTC)
+
+```
+nv1:   have <UNPROBEABLE>  (last-known mmr7zsqbsx… = 87a370f, gen-26, May-9 ~20:44)
+       want mj9xr536gazy3188lmb1yjrs3xc0d0yw…549bd84  (was pdbl6y1n @ 4868b89)
+       carries ~10
+build: ✓ eval ok (1 warn: hostPlatform→stdenv.hostPlatform, distro);
+       dry-build 527 drvs (cold homespace store — not a carry signal)
+```
+
+**UNPROBEABLE this round** — and now for a *different* reason than
+@ 4868b89. Homespace lacks any fleet identity (`kin keys` → `<no
+identity>`, kin-bir7vyhu key absent, kin-infra self-heal key absent).
+No SSH probe was possible to *any* host, including the previously
+working web2 jump leg. Re-probe once a fleet identity lands.
+
+Closure movers since 4868b89: same three as web2 (afe3c5e flake
+update, 74ed8ef relay1 + mesh.relay, af167fd password rekey) **plus**
+the af167fd `machines/nv1/configuration.nix` change itself —
+`services.llama-swap.settings.models` is now a `lib.mkForce` of the
+*whole attr set* (gemma4:e2b + qwen2.5:0.5b, both via `pkgs.fetchurl`
+with pinned hashes), replacing the previous `.cmd`-only override. This
+is the real fix for the distro `builtins.fetchurl` eval-time FOD
+drift; the `.cmd`-only mkForce (459f04b) didn't prevent
+def-collection from forcing the gemma fetchurl. nv1's want
+toplevel changes accordingly.
+
+**proxyJump back**: `kin.nix` now declares `nv1.proxyJump =
+"relay1"` (was lost when relay1 retired @ dc78daf). The
+"web2 has a kinq0 route" workaround documented above is no longer
+the primary path once relay1 is installed and on the mesh — but
+web2 remains a working fallback if relay1 is down.
+
+`kin gen --check`: up to date. Externals all <7d — no bump-*.
+
+Reconcile: `kin deploy nv1` from the desk after relay1 is installed
+(see `ops-deploy-relay1.md`). New runtime check since 4868b89:
+`llama-swap` serves both `gemma4:e2b` and `qwen2.5:0.5b` (the
+mkForce drops any other distro-default models — verify nothing on
+nv1 expects them).

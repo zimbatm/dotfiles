@@ -255,3 +255,51 @@ nix-index-db 0d, nixvim 4d) — no bump-* to file. gen/ up to date.
 
 Reconcile: `kin deploy web2`. Then re-walk the unverified runtime
 checks (pin-nixpkgs, attest identity).
+
+### drift @ af167fd (2026-05-10, ~16:50 UTC)
+
+```
+web2:  have <UNPROBEABLE>  (last-known f06q7cg89… = gen-27, May-10 ~12:13)
+       want knylrxxbaai9xzzk7brr919ay6w3pbmv…549bd84  (was b1vki8sm @ 4868b89)
+       carries ~4
+build: ✓ eval ok; dry-build 193 drvs (cold homespace store — not a carry signal)
+```
+
+**UNPROBEABLE this round**: homespace lacks the kin-bir7vyhu fleet
+identity *and* the kin-infra self-heal key (`kin keys` → `<no
+identity>`). Direct `ssh root@89.167.46.118` rejected (publickey).
+`kin status` would build all toplevels before probing — killed.
+This is a homespace-credential gap, not a host fault; not a drift
+signal in itself. Re-probe next round once a fleet identity lands
+(see `feat-lockring-ssh-agent.md`).
+
+Three new closure movers since 4868b89:
+
+1. **afe3c5e** (`flake update`) — `flake.lock` only. Bumps
+   home-manager/iets/kin/llm-agents/lockring/maille/nix-index-db to
+   0d. Touches every host toplevel.
+2. **74ed8ef** (`Re-create relay1 host`) — `kin.nix` re-adds the
+   `relay1` machine and sets `services.mesh.relay = [ "relay1" ]`
+   (was: no own relay since dc78daf). All mesh members get a new
+   `gen/mesh/fingerprints/_shared/fps`; `nv1.proxyJump = "relay1"`.
+   web2's mesh config now points at relay1 as the iroh relay.
+3. **af167fd** (`nv1: fix gemma override`) — nv1-only at the
+   `machines/` layer, but the commit also rekeys
+   `gen/users/password-*/hash.age` for the new relay1 recipient,
+   which lands in every host's `/run/kin/secrets`.
+
+Closure-neutral: `112a38e`/`a495b1d` (`kin gen`/`kin set` for
+`hcloud-api-token` — operator-side env, no `for`, not in any
+toplevel). `597c1a2`/`44e85ad` (drift/meta).
+
+`kin gen --check`: **up to date** (the previously-unset
+`hcloud-api-token` was set @ a495b1d — the gen/ open question from
+4868b89 is closed).
+
+Externals all <7d (nixpkgs 5d, hm 0d, srvos 3d, nixos-hw 3d,
+nix-index-db 0d, nixvim 5d) — no bump-* to file.
+
+Reconcile: `kin deploy web2` (after relay1 is installed — the new
+mesh.relay points at it; deploying web2 first leaves it dialing a
+dead relay address until relay1 comes up; iroh falls back, but
+verify `services.telemetry` doesn't flap).
