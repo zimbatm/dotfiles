@@ -1,13 +1,7 @@
 { pkgs, ... }:
 let
-  # NVIDIA NeMo parakeet-tdt-0.6b-v3, pre-converted to ONNX by sherpa-onnx
-  # upstream and shipped as a release tarball (encoder/decoder/joiner int8 +
-  # tokens). ~670 MB unpacked — large, but FOD-pinned like transcribe-npu's
-  # whisper IR so the cpu lane is reproducible offline.
-  parakeet = pkgs.fetchzip {
-    url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8.tar.bz2";
-    hash = "sha256-3zMIAaTYBJZB8rXgaxHZdgBqBbrrLLN7USLH+JNTaDY=";
-  };
+  # Shared with transcribe-npu's probe-parakeet — see packages/lib/parakeet-tdt-v3.nix.
+  parakeet = import ../lib/parakeet-tdt-v3.nix pkgs;
 in
 pkgs.writeShellApplication {
   name = "transcribe-cpu";
