@@ -12,18 +12,19 @@ deploy was probed).
 service-level; the unchecked items below need root SSH or at-the-host
 verification, refused by harness for META.
 
-## Status (drift @ d9ac7f1, 2026-05-10)
+## Status (drift @ 4868b89, 2026-05-10)
 
 ```
 web2:  have f06q7cg89xb9srxc1plsw6kngs0m8cjv…549bd84 (gen-27, May-10 ~12:13, rebooted)
-       want b1vki8smbl8jjmcssx6lw8lhpn0nf1ly…549bd84 (7f043af = d9ac7f1)
-       carries 1 — STALE
-nv1:   have mmr7zsqbsx…549bd84 (= 87a370f, gen-26)  want i1sbs5cp…549bd84 (carries 5)
+       want b1vki8smbl8jjmcssx6lw8lhpn0nf1ly…549bd84 (unchanged @ d9ac7f1, 7f043af lockring gen/)
+       carries 1 — STALE, no new movers
+nv1:   have mmr7zsqbsx…549bd84 (= 87a370f, gen-26)  want pdbl6y1n…549bd84 (carries 7) — UNREACHABLE this round
 ```
 
 3 carries flushed in the gen-27 deploy. Dry-build web2 0/0/0 (already
-in local store). nv1 dry-build 33 drvs / 0 fetch. nv1 PROBEABLE again
-via `ssh -J web2` (see `ops-deploy-nv1.md`). Externals all <7d.
+in local store). nv1 dry-build 30 drvs / 0 fetch. nv1 went off the
+mesh ~13:00 UTC (web2 jump path 100% loss — desktop off/asleep, see
+`ops-deploy-nv1.md`). Externals all <7d.
 
 ## Runtime checks — web2 (5/8 PASS via drift spot-check @ gen-26, 2 remain, 1 fixed)
 
@@ -216,3 +217,41 @@ nix-index-db 0d, nixvim 4d) — no bump-* to file. gen/ up to date
 
 Reconcile: `kin deploy web2`. Then re-walk the unverified runtime
 checks (pin-nixpkgs, attest identity); re-check restic at 13:00+.
+
+### drift @ 4868b89 (2026-05-10) — carries hold at 1, restic false-clean CONFIRMED
+
+```
+have:   /nix/store/f06q7cg89xb9srxc1plsw6kngs0m8cjv-…549bd84   (gen-27, May-10 ~12:13)
+booted: /nix/store/f06q7cg89xb9srxc1plsw6kngs0m8cjv-…549bd84   (have == booted == current — clean)
+want:   /nix/store/b1vki8smbl8jjmcssx6lw8lhpn0nf1ly-…549bd84   (unchanged @ d9ac7f1)
+carries: 1 — STALE, no new web2 movers
+build:  ✓ dry-build 0 drvs / 0 fetch
+```
+
+No web2-closure delta since d9ac7f1. The 4 source commits since then
+are nv1-only or eval-only: `41e6f41`/`ed6da85` (web-eyes — desktop HM
+module + flake package output, no server tag), `e395d16`/`4bb028a`
+(parakeet probe — `transcribe-{cpu,npu}` reach only the desktop HM
+profile), `a14716b` (`kin.nix` `gen.hcloud-api-token` — operator-side,
+no `for`, `kin gen --check` shows only the unset reminder),
+`fa65957` (`shell-squeeze` — agentshell devShell only). Carries hold
+at 1 (`7f043af` lockring gen/ regen).
+
+**restic false-clean CONFIRMED**: the `### drift @ d9ac7f1` caveat
+("FAILED-flag reset by reboot is a reboot artifact, not a fix —
+re-check after 13:00 UTC") fires. The 13:00 timer cycle ran and
+failed the same way — `Fatal: unable to open repository at
+sftp:zh6422@zh6422.rsync.net:gotosocial: … unexpected EOF`.
+`kin status web2` now shows `✗` again. `ops-web2-restic-rsyncnet.md`
+stays open; `gen-27` deploy did not change `gotosocial.nix` or the
+rsync.net secret leg.
+
+Health: uptime 0d0h44m (post-reboot), mem 2.9G/3.7G (76%) +836K
+swap, disk 9.6G/36.8G (26%), 1 failed unit
+(`restic-backups-gotosocial.service`).
+
+Externals all <7d (nixpkgs 5d, hm 0d, srvos 3d, nixos-hw 3d,
+nix-index-db 0d, nixvim 4d) — no bump-* to file. gen/ up to date.
+
+Reconcile: `kin deploy web2`. Then re-walk the unverified runtime
+checks (pin-nixpkgs, attest identity).

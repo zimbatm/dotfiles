@@ -23,14 +23,15 @@ delta to preserve — `kin deploy nv1` is safe from a tree-state
 perspective. Booted system is older (`q4a00q1m…`, boot May-8 ~21:47
 — `current != booted`, switch-to-configuration without reboot).
 
-## Latest status (drift @ d9ac7f1, 2026-05-10)
+## Latest status (drift @ 4868b89, 2026-05-10)
 
 ```
-have:   /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-…549bd84   (= 87a370f, gen-26, May-9)
-booted: /nix/store/q4a00q1mixlspzglspc35wm3ra2n5i6z-…549bd84   (boot May-8 ~21:47, no reboot since)
-want:   /nix/store/i1sbs5cpx4qxapc18h90djz4hlz3ad12-…549bd84   (was lf0ln19z @ bd8ef65)
-carries: 5 (5d4d6b3, 3603dcd, 38ccdcf, bd8ef65, 7f043af)
-build:  ✓ dry-build 33 drvs / 0 fetch
+have:   /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-…549bd84   (= 87a370f, gen-26, May-9 — last probe @ d9ac7f1, ~12:32 UTC)
+booted: /nix/store/q4a00q1mixlspzglspc35wm3ra2n5i6z-…549bd84   (boot May-8 ~21:47, no reboot since — last probe @ d9ac7f1)
+want:   /nix/store/pdbl6y1n1phs52fcg8xi983ilhc133va-…549bd84   (was i1sbs5cp @ d9ac7f1)
+carries: 7 (5d4d6b3, 3603dcd, 38ccdcf, bd8ef65, 7f043af, 41e6f41, e395d16)
+build:  ✓ dry-build 30 drvs / 0 fetch
+probe:  ✗ UNREACHABLE this round — `fd0c:…deae` 100% loss from web2's kinq0 (desktop off/asleep)
 ```
 
 Want progression since fcc6b68 (Apr-24): 77dfr1xn → 1mdzqizi (e960caf) →
@@ -38,7 +39,9 @@ n5smybmw (671f35b) → zi5as60q (e3c1cea) → 8l90l7hx (8231b3d) → qjdsdd97
 (23975b3) → rsb8r0kg (9def97e) → 53s3xn5k (cce49ee) → isgj6yg9 (80a9212)
 → mbw1f3pr (6753fd8) → mmr7zsqbsx (87a370f) → 3cyxaj1q (5d4d6b3) →
 qh011y8z (3603dcd) → lj1rs6ir (38ccdcf — gemma pin @ 459f04b) →
-**lf0ln19z (bd8ef65 — kin/iets/hm bump + grind-pkg harden)**.
+lf0ln19z (bd8ef65 — kin/iets/hm bump + grind-pkg harden) →
+i1sbs5cp (7f043af = d9ac7f1 — lockring) →
+**pdbl6y1n (4868b89 — web-eyes + parakeet probe)**.
 Closure-affecting since 6753fd8: dc78daf (relay1 removal), 81fad96 /
 e166eac / f2a3653 / 231d9ff / c917b09 (gnome-keyring + signal libsecret
 churn), fb08d11 (fmt), 05b2e2c (kin bump for tab-indent fix). 8c7c93c +
@@ -519,3 +522,53 @@ adds an ssh-agent socket that does *not* flip `$SSH_AUTH_SOCK`
 yet, so the existing key path stays). Off-main concern is cleared —
 no local delta to preserve. Then walk runtime checks; new check:
 lockring unit active + `ls $LOCKRING_SSH_AUTH_SOCK` exists.
+
+### drift @ 4868b89 (2026-05-10) — ✗ nv1 UNREACHABLE; want grows i1sbs5cp→pdbl6y1n
+
+```
+have:   /nix/store/mmr7zsqbsx3jm7rhdy0gghgqpbcwhqsq-…549bd84   (= 87a370f, gen-26 — last probe @ d9ac7f1, ~12:32 UTC)
+booted: /nix/store/q4a00q1mixlspzglspc35wm3ra2n5i6z-…549bd84   (boot May-8 ~21:47 — last probe @ d9ac7f1)
+want:   /nix/store/pdbl6y1n1phs52fcg8xi983ilhc133va-…549bd84   (was i1sbs5cp @ d9ac7f1)
+carries: 7 — STALE, 2 new movers since d9ac7f1
+build:  ✓ dry-build 30 drvs / 0 fetch
+probe:  ✗ UNREACHABLE — 100% packet loss from web2's kinq0 to fd0c:…deae
+```
+
+Probe failed both legs at ~13:00 UTC: `kin status nv1` times out
+(60s); `kin ssh nv1` → `Network is unreachable` (homespace); via
+web2 jump → `Connection timed out`; `ping -6 -W 3` from web2 over
+kinq0 → 100% loss. The web2-jump path that came online @ d9ac7f1
+(~30 min earlier) is gone — most likely the desktop went to sleep
+or off (Sunday afternoon CET). Not a regression in the relay path;
+re-probe next round before re-reading this as a mesh fault.
+
+Two new closure movers since d9ac7f1 (the lockring drift):
+
+1. **41e6f41** (`grind/adopt-agent-browser-web-eyes` merge, ed6da85
+   commit) — `packages/web-eyes/default.nix` (NEW, 93L) + wired into
+   `modules/home/desktop/default.nix:195` and
+   `flake.nix` `extraAgentPackages`. nv1's HM closure picks up the
+   `web-eyes` agent-browser wrapper.
+2. **e395d16** (`grind/adopt-parakeet-npu-multilingual` merge, 4bb028a
+   commit) — `packages/lib/parakeet-tdt-v3.nix` (NEW, 13L lift) +
+   `packages/transcribe-{cpu,npu}/default.nix` refactor (transcribe-npu
+   gains a `probe-parakeet` symlinkJoin entry, transcribe-cpu sources
+   the lifted lib). Both in nv1's closure via `ptt-dictate` /
+   `live-caption-log`.
+
+Closure-neutral since d9ac7f1: `a14716b` (`kin.nix` `gen.hcloud-api-token`,
+operator-side, no `for` — `kin gen --check` confirms only an unset
+secret reminder), `fa65957` (`packages/shell-squeeze/default.nix`,
+agentshell devShell only — not in any host toplevel), `8a1aca5` /
+`b9d2f70` / `4868b89` (meta/backlog only).
+
+Want progression: `i1sbs5cp (d9ac7f1) → pdbl6y1n (4868b89)`.
+
+Externals all <7d (nixpkgs 5d, hm 0d, srvos 3d, nixos-hw 3d,
+nix-index-db 0d, nixvim 4d) — no bump-* to file. gen/ up to date
+(`kin gen --check`: only `user/hcloud-api-token/_shared` unset,
+expected pending `kin set`).
+
+Reconcile: unchanged from `### drift @ d9ac7f1` — `kin deploy nv1`
+from the desk, walk runtime checks. New checks since d9ac7f1:
+`web-eyes --help` resolves; `transcribe-npu probe-parakeet` exits 0.

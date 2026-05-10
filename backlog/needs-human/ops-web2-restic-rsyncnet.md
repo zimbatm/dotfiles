@@ -77,5 +77,12 @@ Likely outcomes (ranked):
   Reboot reset the unit's FAILED flag; the next timer fire is 13:00
   UTC. Re-probe after that before considering this resolved.
   (drift @ d9ac7f1, 2026-05-10)
+- **False-clean CONFIRMED: 13:00 cycle FAILED.** First post-reboot
+  timer fire at 13:00:01 UTC ran and died the same way —
+  `Fatal: unable to open repository at sftp:zh6422@zh6422.rsync.net:gotosocial:
+  … server unexpectedly closed connection: unexpected EOF`. `kin status
+  web2` is back to `✗`. gen-27 deploy did not fix this — still a
+  credential/account problem on the rsync.net leg, not a nix-side bug.
+  (drift @ 4868b89, 2026-05-10)
 
 Filed by drift @ 87a370f, 2026-05-10.
