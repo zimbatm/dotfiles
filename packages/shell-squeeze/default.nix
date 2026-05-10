@@ -13,11 +13,21 @@
 # into us. No hardcoded store paths — respects whatever git/nix the env
 # actually provides.
 #
+# Two axes:
+#   1. line/byte capping  — git log, find, tree, raw nix eval (volume)
+#   2. TOON re-encoding   — nix/kin --json, jq             (density)
+# Axis 2 ships `toon-emit.py` (stdlib python3, already in agentshell's
+# closure). Strict pass-through outside two safe shapes; only fires when
+# stdout is *not* a pipe so `nix eval --json | jq` style cascades keep
+# real JSON, and only when SHELL_SQUEEZE!=0 like everything else.
+#
 # Bench: refs/notes/tokens 5-round comparison vs the pre-shim baseline
 # recorded in the adopting commit. ≥15% drop in any non-META role's
 # med_billable with zero truncation-attributable gate failures → upstream
 # the pattern to kin's agentshell. Otherwise revert (shims are theatre).
+# TOON axis has its own 5-round window (see backlog item).
 let
+  toonEmit = ./toon-emit.py;
   prelude = name: ''
     PATH="$(IFS=:; o=; for d in $PATH; do [ -e "$d/.shell-squeeze" ] || o="''${o:+$o:}$d"; done; printf %s "$o")"
     real=$(command -v ${name}) || { echo "shell-squeeze: ${name}: not found in PATH" >&2; exit 127; }
@@ -30,6 +40,15 @@ let
     _capl() {
       ${pkgs.gawk}/bin/awk -v n="$1" -v h="$2" \
         'NR<=n; END{if(NR>n) printf "[shell-squeeze: +%d lines elided — %s, or SHELL_SQUEEZE=0 to bypass]\n", NR-n, h >"/dev/stderr"}'
+    }
+    # TOON re-encode — only when stdout is not a pipe (a downstream tool
+    # that explicitly asked for JSON must keep getting JSON). The encoder
+    # is itself a strict pass-through outside its two shapes and prints
+    # the escape-hatch hint to stderr only when it actually rewrote.
+    _toon() {
+      if [ -p /dev/stdout ]; then exec "$real" "$@"; fi
+      "$real" "$@" | ${pkgs.python3}/bin/python3 ${toonEmit}
+      exit "''${PIPESTATUS[0]}"
     }
   '';
   shim = name: body: pkgs.writeShellScriptBin name (prelude name + body);
@@ -69,6 +88,21 @@ let
       }
       exit "''${PIPESTATUS[0]}"
     fi
+    if _has '--json' "$@" && ! _has '--raw' "$@"; then _toon "$@"; fi
+    exec "$real" "$@"
+  '';
+
+  kin = shim "kin" ''
+    if _has '--json' "$@" && ! _has '--raw' "$@"; then _toon "$@"; fi
+    exec "$real" "$@"
+  '';
+
+  jq = shim "jq" ''
+    # -r/-j/-a leave JSON; --arg/--rawfile/etc. are inputs, not output shape.
+    if ! { _has '-r' "$@" || _has '--raw-output' "$@" || _has '-j' "$@" \
+        || _has '--join-output' "$@" || _has '-a' "$@" || _has '--ascii-output' "$@"; }; then
+      _toon "$@"
+    fi
     exec "$real" "$@"
   '';
 
@@ -100,6 +134,8 @@ pkgs.symlinkJoin {
   paths = [
     git
     nix
+    kin
+    jq
     find
     tree
   ];
