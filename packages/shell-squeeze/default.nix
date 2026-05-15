@@ -24,7 +24,8 @@
 # Bench: refs/notes/tokens 5-round comparison vs the pre-shim baseline
 # recorded in the adopting commit. ≥15% drop in any non-META role's
 # med_billable with zero truncation-attributable gate failures → upstream
-# the pattern to kin's agentshell. Otherwise revert (shims are theatre).
+# the pattern to a dedicated agentshell wrapper. Otherwise revert
+# (shims are theatre).
 # TOON axis has its own 5-round window (see backlog item).
 let
   toonEmit = ./toon-emit.py;
@@ -91,14 +92,6 @@ let
     if _has '--json' "$@" && ! _has '--raw' "$@"; then _toon "$@"; fi
     exec "$real" "$@"
   '';
-
-  # No `kin` shim: the only kin on a grind worktree's PATH is the one the
-  # agentshell symlinkJoin shadows, so the prelude's PATH-strip leaves
-  # `command -v kin` with nothing to find (exit 127, SHELL_SQUEEZE=0
-  # bypass unreachable). git/nix/jq/find/tree all have a system fallback;
-  # kin doesn't. The TOON win on `kin opts/status --json` is marginal
-  # next to `nix eval --json` anyway. Re-add only with an explicit
-  # `.kin-real` link from the agentshell wrap, never via PATH lookup.
 
   jq = shim "jq" ''
     # -r/-j/-a leave JSON; --arg/--rawfile/etc. are inputs, not output shape.

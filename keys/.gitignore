@@ -1,3 +1,0 @@
-# Machine private keys are seeding-convenience copies only — never commit.
-# TPM-backed machines (preferred) have no extractable key at all.
-machines/*.key

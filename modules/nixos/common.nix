@@ -19,17 +19,12 @@
   nix.settings.trusted-public-keys = [
     # cache.numtide.com
     "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
-    # cache.assise.systems — kin-infra federation cache (cross-fleet substituter
-    # so kin/maille/iets bumps pull pre-built closures instead of rebuilding).
-    "cache.assise.systems-1:6AhZgZEbIMKqsRdgT+P0M+poXohJbiGD/MHrnfZF19U="
   ];
   nix.settings.substituters = lib.mkForce [
     # Fast mirror for cache.nixos.org
     "https://hetzner-cache.numtide.com"
     # NumTide cache
     "https://cache.numtide.com"
-    # assise federation cache (kin-infra services.cache, public HTTPS via ingress)
-    "https://cache.assise.systems"
   ];
   nix.settings.experimental-features = lib.mkForce [
     "auto-allocate-uids"

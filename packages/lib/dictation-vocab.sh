@@ -3,7 +3,7 @@
 # Sourced by ptt-dictate / transcribe-cpu / transcribe-npu the same way
 # fetch-model.sh is. Mines project jargon from sem-grep's existing index so
 # whisper.cpp / sherpa-onnx / OpenVINO whisper get the identifiers they would
-# otherwise mishear (kin, iets, maille, niri, gsnap, GBNF, machine names, ...).
+# otherwise mishear (niri, gsnap, GBNF, machine names, ...).
 #
 # The corpus you grep feeds the transcriber that feeds the corpus — that
 # self-tightening loop is the falsification target. The WER bench is
@@ -50,10 +50,6 @@ dictation_vocab() {
   # that don't ship it. Reading the heredoc through head directly (no pipe)
   # avoids a SIGPIPE under `set -o pipefail` when N < the seed count.
   head -n "$n" <<'SEED'
-kin
-assise
-iets
-maille
 niri
 gsnap
 pueue
@@ -72,12 +68,8 @@ shell-squeeze
 sel-act
 tab-tap
 afk-bench
-agent-meter
 gitbutler
-kin-opts
-llm-router
 pty-puppet
-coord-panes
 man-here
 nv1
 relay1

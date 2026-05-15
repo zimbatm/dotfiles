@@ -1,6 +1,6 @@
 ---
 name: sem-grep
-description: Semantic grep over the five assise repos (~/src/{home,kin,iets,maille,meta}) via a local embedding index on the NPU. Reach for this BEFORE Grep when the query is fuzzy or conceptual ("where do we set the worker ssh CA", "what handles wake-word debounce") and you don't have the exact literal.
+description: Semantic grep over the local indexed repos (default: ~/src/{home,meta}) via a local embedding index on the NPU. Reach for this BEFORE Grep when the query is fuzzy or conceptual and you don't have the exact literal.
 ---
 
 `sem-grep "<natural-language query>"` prints ranked `score  path:line`
@@ -9,7 +9,7 @@ the five repos. Default is **hybrid retrieval**: dense cosine
 (bge-small-en on the Meteor Lake NPU) and lexical BM25 (sqlite FTS5)
 fused with reciprocal-rank fusion. Dense catches paraphrase
 ("agentshell devshell wiring"); lexical catches exact identifiers
-(`kin.nix`, `wheelNeedsPassword`) that a 384-dim model conflates.
+(`wheelNeedsPassword`) that a 384-dim model conflates.
 No network, no paid API.
 
 ```sh

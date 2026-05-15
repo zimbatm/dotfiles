@@ -10,7 +10,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 REFS="$HERE/bench-refs.txt"
 ck_rev=$(nix eval --raw --impure --expr '(builtins.fromJSON (builtins.readFile ./flake.lock)).nodes.llm-agents.locked.rev')
 MODEL="${SEM_GREP_MODEL:-${XDG_DATA_HOME:-$HOME/.local/share}/openvino/bge-small-en-v1.5}"
-IFS=: read -ra DIRS <<<"${SEM_GREP_REPOS:-$HOME/src/home:$HOME/src/kin:$HOME/src/iets:$HOME/src/maille:$HOME/src/meta}"
+IFS=: read -ra DIRS <<<"${SEM_GREP_REPOS:-$HOME/src/home:$HOME/src/meta}"
 
 # Fail loudly off-nv1: this bench needs the live NPU + fetched bge-small IR + index.db.
 [[ -e /dev/accel/accel0 ]]            || { echo "FATAL: no NPU (/dev/accel/accel0) — run on nv1, not in CI." >&2; exit 1; }
@@ -18,7 +18,7 @@ IFS=: read -ra DIRS <<<"${SEM_GREP_REPOS:-$HOME/src/home:$HOME/src/kin:$HOME/src
 command -v sem-grep >/dev/null         || { echo "FATAL: sem-grep not on PATH." >&2; exit 1; }
 
 # norm: lines → "repo/sub/path" (drop ~/src/ prefix, score, :line), order-preserving dedupe.
-norm() { grep -oE '(~/src/|/root/src/|\./)?(home|kin|iets|maille|meta)/[A-Za-z0-9_./-]+' | sed -E 's#^(~/src/|/root/src/|\./)##; s#:[0-9].*$##' | awk '!s[$0]++'; }
+norm() { grep -oE '(~/src/|/root/src/|\./)?(home|meta)/[A-Za-z0-9_./-]+' | sed -E 's#^(~/src/|/root/src/|\./)##; s#:[0-9].*$##' | awk '!s[$0]++'; }
 # recall@5 of expected files (space-sep, file-level) against top-5 hit files on stdin.
 r5() { local exp="$1" hits; hits=$(norm | head -5); local n=0 t=0
   for e in $exp; do t=$((t+1)); grep -qxF "${e%%:*}" <<<"$hits" && n=$((n+1)); done

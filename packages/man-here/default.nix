@@ -15,10 +15,9 @@ pkgs.writeShellApplication {
   ];
   text = ''
     # Version-exact docs assembled from /nix/store. Resolves <cmd> to its
-    # installed store output and emits markdown: package id + meta.description
-    # (via kin's nix.registry.nixpkgs github pin), rendered man
-    # page, capped --help, and $out/share/doc README*. Every section degrades
-    # gracefully; nothing past arg-parse is fatal.
+    # installed store output and emits markdown: package id + meta.description,
+    # rendered man page, capped --help, and $out/share/doc README*. Every
+    # section degrades gracefully; nothing past arg-parse is fatal.
     #
     # Not in PATH → nix-locate fallback names the providing attr (db from the
     # nix-index-database input already wired in modules/home/terminal).

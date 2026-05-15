@@ -53,7 +53,7 @@ def run_tool(spec: dict, args: str) -> str:
         toks = shlex.split(args)
         # Observation text feeds back into the prompt, so a poisoned obs could
         # steer Phi-3 into emitting flags here. Reject; model retries on the
-        # error string. Tools needing flags get a fixed-argv entry (kin-hosts).
+        # error string. Tools needing flags get their own fixed argv entries.
         bad = next((t for t in toks if t.startswith("-")), None)
         if bad:
             return f"(rejected: args may not contain flags: {bad!r})"

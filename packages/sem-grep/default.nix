@@ -10,7 +10,7 @@ let
     ps.tree-sitter
   ]);
   # withPlugins emits a dir of <lang>.so → grammar parser; sem-grep.py loads
-  # them via ctypes. Covers ~all of home/kin/iets/maille source.
+  # them via ctypes. Covers the local source trees we index by default.
   grammars = pkgs.tree-sitter.withPlugins (g: [
     g.tree-sitter-nix
     g.tree-sitter-python
@@ -27,12 +27,12 @@ pkgs.writeShellApplication {
     pkgs.systemd # journalctl for `index-log`
   ];
   text = ''
-    # Semantic grep over the assise repos. Index: git-tracked text in
-    # ~/src/{home,kin,iets,maille,meta} → chunked → sqlite+blob (dense) +
+    # Semantic grep over local repos. Index: git-tracked text in
+    # ~/src/{home,meta} by default → chunked → sqlite+blob (dense) +
     # contentless FTS5 (lexical) at $XDG_STATE_HOME/sem-grep. Query: by default
     # both legs are run and RRF-fused — dense (bge-small cosine on the Meteor
     # Lake NPU) catches paraphrase, lexical (BM25, pure sqlite) catches exact
-    # identifiers like `kin.nix`. Reuses transcribe-npu's OpenVINO closure so
+    # identifiers. Reuses transcribe-npu's OpenVINO closure so
     # the Arc iGPU stays free for ask-local.
     #
     #   sem-grep "<query>"            → ranked file:line hits (top 10, hybrid)
@@ -53,7 +53,7 @@ pkgs.writeShellApplication {
     RERANK_MODEL="''${SEM_GREP_RERANK_MODEL:-''${XDG_DATA_HOME:-$HOME/.local/share}/openvino/bge-reranker-base}"
     DEVICE="''${SEM_GREP_DEVICE:-NPU}"
     STATE="''${SEM_GREP_STATE:-''${XDG_STATE_HOME:-$HOME/.local/state}/sem-grep}"
-    REPOS="''${SEM_GREP_REPOS:-$HOME/src/home:$HOME/src/kin:$HOME/src/iets:$HOME/src/maille:$HOME/src/meta}"
+    REPOS="''${SEM_GREP_REPOS:-$HOME/src/home:$HOME/src/meta}"
 
     # shellcheck source=/dev/null
     . ${../lib/fetch-model.sh}

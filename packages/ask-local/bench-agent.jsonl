@@ -4,9 +4,6 @@
 {"goal": "find where the wake word model is loaded", "expect_tool": "sem-grep", "expect_substr": "wake"}
 {"goal": "where in the repos do we configure the GNOME shell extensions?", "expect_tool": "sem-grep", "expect_substr": "gnome"}
 {"goal": "search the codebase for how llm-router picks a backend", "expect_tool": "sem-grep", "expect_substr": "router"}
-{"goal": "is ssh enabled on nv1?", "expect_tool": "kin-opts", "expect_substr": "openssh"}
-{"goal": "list the machines in this fleet", "expect_tool": "kin-hosts", "expect_substr": "nv1"}
-{"goal": "what value does services.tailscale.enable have on relay1?", "expect_tool": "kin-opts", "expect_substr": "tailscale"}
 {"goal": "how do I use the pueue command? show me its flags", "expect_tool": "man-here", "expect_substr": "pueue"}
 {"goal": "what does the jq --slurp flag do?", "expect_tool": "man-here", "expect_substr": "slurp"}
 {"goal": "give me the help for nixos-rebuild", "expect_tool": "man-here", "expect_substr": "nixos-rebuild"}

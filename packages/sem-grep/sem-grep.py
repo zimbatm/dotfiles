@@ -1,4 +1,4 @@
-"""sem-grep: hybrid (dense + lexical) retrieval over the assise repos.
+"""sem-grep: hybrid (dense + lexical) retrieval over the local repos.
 
 Dense: bge-small-en-v1.5 (384-dim) on OpenVINO/NPU; sqlite+blob store
 under $XDG_STATE_HOME/sem-grep; brute-force cosine (corpus ~2k files, no
@@ -218,7 +218,7 @@ TS_QUERIES = {
 }
 # Identifier-USE captures for the `refs` verb. Deliberately coarse — name
 # match only, no scope/type resolution. Precision vs hand-checked ground
-# truth on polyglot assise repos is the falsification target (bench-refs.txt).
+# truth on polyglot local repos is the falsification target (bench-refs.txt).
 TS_REF_QUERIES = {
     "nix": """
       (variable_expression name: (identifier) @ref)

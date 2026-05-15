@@ -69,7 +69,7 @@ in
           state="''${XDG_STATE_HOME:-$HOME/.local/state}/live-caption"
           [ -d "$state" ] || exit 0
           find "$state" -name '*.jsonl' -mtime +${toString config.home.live-caption.retentionDays} -delete
-          export SEM_GREP_REPOS="''${SEM_GREP_REPOS:-$HOME/src/home:$HOME/src/kin:$HOME/src/iets:$HOME/src/maille:$HOME/src/meta}:$state"
+          export SEM_GREP_REPOS="''${SEM_GREP_REPOS:-$HOME/src/home:$HOME/src/meta}:$state"
           exec ${self'.sem-grep}/bin/sem-grep index
         ''}";
       };

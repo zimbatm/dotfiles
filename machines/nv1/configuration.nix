@@ -49,6 +49,9 @@
   services.opencrow-local = {
     enable = true;
     noctaliaPlugin = true;
+    # Keep opencrow's advertised/requested model in lockstep with the
+    # llama-swap IDs we actually serve below.
+    defaultModel = "gemma4:e2b";
   };
   boot.enableContainers = true;
 
@@ -88,8 +91,18 @@
       "gemma4:e2b".cmd = "${llama-server} -m ${gemma4-e2b-gguf} --port \${PORT}" + modelArgs "gemma4:e2b";
     };
 
-  # locksmith workaround
-  users.users.zimbatm.extraGroups = [ "tss" ];
+  # Keep the declared workstation account aligned with the live desktop setup
+  # so userborn doesn't try to rewrite the active user's primary group and
+  # strip desktop/Docker access during switch.
+  users.users.zimbatm.extraGroups = [
+    "wheel"
+    "audio"
+    "video"
+    "networkmanager"
+    "docker"
+    "input"
+    "tss"
+  ];
 
   # NVIDIA RTX 4060 Max-Q (Ada / AD107M) for CUDA compute. Open kernel
   # modules — supported on Ada from the 555 series; production (595.58.03)
@@ -126,6 +139,8 @@
     pkgs.pam_u2f # provides pamu2fcfg for enrolling the YubiKey
   ];
 
+  networking.hostName = "nv1";
+
   # Debugging tools
   programs.bcc.enable = true;
   programs.sysdig.enable = true;
@@ -134,14 +149,6 @@
 
   nix.settings.trusted-users = [ "zimbatm" ];
 
-  # Build policy: nv1 builds small, dispatches heavy. Strip big-parallel /
-  # nixos-test / benchmark from local system-features so derivations carrying
-  # requiredSystemFeatures for those are forced onto the hcloud-07 remote
-  # builder (kin.nix builders.hcloud-07 advertises them). Keep kvm/uid-range/
-  # recursive-nix — hardware/daemon capabilities, not load classes. mkForce
-  # because the nixpkgs config/nix.nix module and the srvos nix-experimental
-  # mixin both set system-features at default priority — a plain assignment
-  # would merge with theirs, not replace.
   nix.settings.system-features = lib.mkForce [
     "kvm"
     "uid-range"
@@ -166,7 +173,6 @@
     config.home.stateVersion = "22.11";
     config.home.live-caption.enable = false;
     config.home.packages = [
-      inputs.iets.packages.${pkgs.stdenv.hostPlatform.system}.default
       inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.infer-queue
     ];
     config.services.pueue.enable = false;

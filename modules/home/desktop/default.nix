@@ -60,7 +60,7 @@ in
     description = "tab-tap socket relay";
     path = "${self'.tab-tap}/libexec/tab-tap-host";
     type = "stdio";
-    allowed_extensions = [ "tab-tap@home.assise" ];
+    allowed_extensions = [ "tab-tap@home" ];
   };
 
   programs.foot = {
@@ -193,13 +193,10 @@ in
     self'.agent-eyes
     self'.gsnap
     self'.web-eyes
-    self'.agent-meter
     self'.now-context
     self'.pty-puppet
     self'.tab-tap
     self'.sel-act
-    claude-code
-    llm.claudebox
     codex
     crush
     opencode
@@ -207,8 +204,7 @@ in
   ];
 
   # Always-on VAD gate on the NPU. ConditionPathExists keeps it inert until
-  # the accel node is live (gated on needs-human/ops-deploy-nv1). Falsify via
-  # agent-meter NPU-busy % + powertop package-W delta over a 10-min idle window.
+  # the accel node is live (gated on needs-human/ops-deploy-nv1).
   systemd.user.services.wake-listen = {
     Unit = {
       Description = "NPU-resident VAD gate for ptt-dictate";
