@@ -63,11 +63,9 @@ infer-queue
 wake-listen
 live-caption-log
 say-back
-now-context
 shell-squeeze
 sel-act
 tab-tap
-afk-bench
 gitbutler
 pty-puppet
 man-here

@@ -1,6 +1,3 @@
-{"goal": "what app am I looking at right now?", "expect_tool": "now-context", "expect_substr": "focused"}
-{"goal": "am I AFK?", "expect_tool": "now-context", "expect_substr": "afk"}
-{"goal": "which apps have I used in the last 15 minutes?", "expect_tool": "now-context", "expect_substr": "last_15m"}
 {"goal": "find where the wake word model is loaded", "expect_tool": "sem-grep", "expect_substr": "wake"}
 {"goal": "where in the repos do we configure the GNOME shell extensions?", "expect_tool": "sem-grep", "expect_substr": "gnome"}
 {"goal": "search the codebase for how llm-router picks a backend", "expect_tool": "sem-grep", "expect_substr": "router"}

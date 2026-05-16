@@ -1,10 +1,5 @@
 [
   {
-    "name": "now-context",
-    "desc": "current desktop state: AFK flag, focused window, last-15m app histogram (JSON)",
-    "argv": ["now-context"]
-  },
-  {
     "name": "sem-grep",
     "desc": "semantic search over the local indexed repos; args = natural-language query",
     "argv": ["sem-grep", "{args}"]

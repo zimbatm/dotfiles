@@ -41,8 +41,6 @@ in
 {
   imports = [
     ../terminal
-    ./activitywatch.nix
-    ./afk-bench.nix
     ./live-caption.nix
     ./sem-grep.nix
   ];
@@ -136,16 +134,13 @@ in
   # via bash -c with {arg} substituted shell-quoted. `fallthrough = true` types
   # the raw utterance via ydotool (the pre-intent path). Unmatched → fallthrough.
   # Targets are existing skill CLIs already on PATH (agent-eyes, ask-local,
-  # say-back, now-context) — zero new closure.
+  # say-back) — zero new closure.
   xdg.configFile."voice-intent/intents.toml".text = ''
     [screenshot]
     exec = "peek"
 
     [ask]
     exec = "ask-local {arg} | say-back"
-
-    [context]
-    exec = "now-context --clip"
 
     [type]
     fallthrough = true
@@ -193,7 +188,6 @@ in
     self'.agent-eyes
     self'.gsnap
     self'.web-eyes
-    self'.now-context
     self'.pty-puppet
     self'.tab-tap
     self'.sel-act

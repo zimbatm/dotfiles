@@ -137,7 +137,7 @@ pkgs.writeShellApplication {
 
     EXEC=$(jq -r --arg i "$INTENT" '.[$i].exec // empty' <<<"$INTENTS")
     if [[ -n "$EXEC" ]]; then
-      # Intent targets (peek, say-back, now-context, ...) resolve from the
+      # Intent targets (peek, say-back, ...) resolve from the
       # caller's PATH — writeShellApplication prepends runtimeInputs, so the
       # session profile is still visible.
       ARG_Q=$(printf %q "$ARG")

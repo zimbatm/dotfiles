@@ -113,9 +113,7 @@
           ask-local = call ./packages/ask-local;
           ask-cuda = call ./packages/ask-cuda;
           infer-queue = call ./packages/infer-queue;
-          afk-bench = call ./packages/afk-bench;
           llm-router = call ./packages/llm-router;
-          now-context = call ./packages/now-context;
           pty-puppet = call ./packages/pty-puppet;
           man-here = call ./packages/man-here;
           sem-grep = call ./packages/sem-grep;
