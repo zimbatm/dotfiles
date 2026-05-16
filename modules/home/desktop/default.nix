@@ -201,6 +201,7 @@ in
     crush
     opencode
     llm.pi
+    inputs.voxtype.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
   # Always-on VAD gate on the NPU. ConditionPathExists keeps it inert until

@@ -33,6 +33,9 @@
       inputs.treefmt-nix.follows = "treefmt-nix";
       inputs.llm-agents.follows = "llm-agents";
     };
+    voxtype = {
+      follows = "distro/voxtype";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";

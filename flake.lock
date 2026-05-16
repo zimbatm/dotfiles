@@ -359,7 +359,11 @@
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
         "srvos": "srvos",
-        "treefmt-nix": "treefmt-nix_2"
+        "treefmt-nix": "treefmt-nix_2",
+        "voxtype": [
+          "distro",
+          "voxtype"
+        ]
       }
     },
     "srvos": {
