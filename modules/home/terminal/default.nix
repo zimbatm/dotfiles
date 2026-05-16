@@ -10,7 +10,10 @@ let
   llm = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
 in
 {
-  imports = [ inputs.nix-index-database.homeModules.nix-index ];
+  imports = [
+    inputs.nix-index-database.homeModules.nix-index
+    ../pi-extensions
+  ];
   # also wrap and install comma
   programs.nix-index-database.comma.enable = true;
 

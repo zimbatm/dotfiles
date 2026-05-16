@@ -76,6 +76,7 @@
       };
       homeModules = {
         desktop = ./modules/home/desktop;
+        pi-extensions = ./modules/home/pi-extensions;
         terminal = ./modules/home/terminal;
       };
       nixosConfigurations = {
